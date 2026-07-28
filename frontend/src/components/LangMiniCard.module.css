@@ -30,26 +30,30 @@
 }
 .row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   font-family: var(--mono);
   font-size: 13px;
 }
 .rank {
-  flex: 0 0 auto;
-  width: 16px;
+  flex: 0 0 12px;
   color: var(--accent);
   font-size: 11px;
 }
 .name {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   color: var(--text);
 }
 .count {
-  flex: 0 0 auto;
-  color: var(--muted);
+  flex: 0 0 auto; /* 이름 바로 뒤에 붙여 좌측 클러스터 — 우측으로 치우치지 않게 */
+  color: var(--faint);
   font-variant-numeric: tabular-nums;
+}
+.count::before {
+  content: "·";
+  margin-right: 5px;
+  color: var(--line);
 }
 
 .empty {

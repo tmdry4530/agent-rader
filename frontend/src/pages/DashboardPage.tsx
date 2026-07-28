@@ -104,7 +104,6 @@ export default function DashboardPage() {
                   loading={trends.loading}
                   error={trends.error}
                   onRetry={trends.reload}
-                  compact
                 />
               )}
             </div>

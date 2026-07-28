@@ -9,15 +9,10 @@
   align-items: stretch;
 }
 
-.trendCol {
-  flex: 3 1 520px; /* 3:2 비율 — Δ 컬럼까지 안 잘리게 좌측을 넓게 */
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
+/* 두 패널 50:50 동일 폭 — 좁은 화면(~760px 미만)에선 세로 스택 */
+.trendCol,
 .langCol {
-  flex: 2 1 340px; /* 합계가 안 들어가는 좁은 화면(~920px 미만)에선 세로 스택 */
+  flex: 1 1 380px;
   min-width: 0;
   display: flex;
   flex-direction: column;
