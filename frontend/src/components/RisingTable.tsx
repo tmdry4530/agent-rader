@@ -22,7 +22,7 @@ export default function RisingTable({ data, loading, error, onRetry }: RisingTab
   }
 
   return (
-    <table className="table table--rows">
+    <table className="table table--rows table--dense">
       <thead>
         <tr>
           <th>Repo</th>

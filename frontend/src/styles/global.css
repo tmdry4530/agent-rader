@@ -212,6 +212,10 @@ input, select, textarea { font: inherit; color: inherit; }
 .table--rows tbody tr:hover { background: var(--surface-2); }
 .table--rows tbody tr { cursor: pointer; }
 .col-num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 대시보드 5컬럼 테이블 — 좁은 패널(50:50)에 맞춰 셀 여백 축소 */
+.table--dense th, .table--dense td { padding: 9px 8px; }
+.table--dense td:first-child, .table--dense th:first-child { padding-left: 14px; }
+.table--dense td:last-child, .table--dense th:last-child { padding-right: 14px; }
 /* 헤더도 값과 같은 오른쪽 정렬로 (`.table th`의 left 정렬보다 우선) */
 .table th.col-num { text-align: right; }
 

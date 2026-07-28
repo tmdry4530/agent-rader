@@ -3,7 +3,7 @@
 .repoCell {
   font-family: var(--mono);
   font-size: 12.5px;
-  max-width: 220px;
+  max-width: 150px;
 }
 
 .deltaWrap {

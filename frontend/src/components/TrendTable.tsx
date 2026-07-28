@@ -34,13 +34,14 @@ export default function TrendTable({ data, loading, error, onRetry, compact = fa
   }
 
   return (
-    <table className="table table--rows">
+    <table className="table table--rows table--dense">
       <thead>
         <tr>
           <th>Repo</th>
           {!compact && <th>Lang</th>}
           <th className="col-num">Stars</th>
           <th className="col-num">Δ</th>
+          <th className="col-num">증가율</th>
         </tr>
       </thead>
       <tbody>
@@ -70,10 +71,10 @@ export default function TrendTable({ data, loading, error, onRetry, compact = fa
                 <span className="stars">★ {formatStars(repo.stars)}</span>
               </td>
               <td className="col-num">
-                <div className={styles.deltaWrap}>
-                  <span className={deltaClass}>{formatDelta(repo.star_delta)}</span>
-                  <span className={styles.growthRate}>{formatPercent(repo.growth_rate)}</span>
-                </div>
+                <span className={deltaClass}>{formatDelta(repo.star_delta)}</span>
+              </td>
+              <td className="col-num">
+                <span className={styles.growthRate}>{formatPercent(repo.growth_rate)}</span>
               </td>
             </tr>
           );
