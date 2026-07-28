@@ -60,9 +60,12 @@ export default function StarChart({ snapshots }: Props) {
         <CartesianGrid stroke="#232830" strokeDasharray="2 4" vertical={false} />
         <XAxis
           dataKey="captured_at"
-          tickFormatter={(v: string) =>
-            new Date(v).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
-          }
+          tickFormatter={(v: string) => {
+            const d = new Date(v);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+          }}
+          interval="preserveStartEnd"
+          minTickGap={36}
           tick={{ fill: '#8b93a1', fontSize: 11, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={{ stroke: '#232830' }}
           tickLine={{ stroke: '#232830' }}
