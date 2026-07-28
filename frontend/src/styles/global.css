@@ -212,10 +212,17 @@ input, select, textarea { font: inherit; color: inherit; }
 .table--rows tbody tr:hover { background: var(--surface-2); }
 .table--rows tbody tr { cursor: pointer; }
 .col-num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
-/* 대시보드 5컬럼 테이블 — 좁은 패널(50:50)에 맞춰 셀 여백 축소 */
+/* 대시보드 5컬럼 테이블 — 좁은 패널(50:50)에 맞춰 셀 여백 축소.
+   table-layout:fixed + 동일 컬럼 폭으로 좌우 두 테이블 컬럼을 정렬한다. */
+.table--dense { table-layout: fixed; width: 100%; }
 .table--dense th, .table--dense td { padding: 9px 8px; }
 .table--dense td:first-child, .table--dense th:first-child { padding-left: 14px; }
 .table--dense td:last-child, .table--dense th:last-child { padding-right: 14px; }
+/* col1(Repo)은 남는 폭, col2~5는 고정 — 두 테이블이 같은 값이라 컬럼이 맞춰짐 */
+.table--dense th:nth-child(2) { width: 92px; }
+.table--dense th:nth-child(3) { width: 76px; }
+.table--dense th:nth-child(4) { width: 62px; }
+.table--dense th:nth-child(5) { width: 72px; }
 /* 헤더도 값과 같은 오른쪽 정렬로 (`.table th`의 left 정렬보다 우선) */
 .table th.col-num { text-align: right; }
 
