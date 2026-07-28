@@ -1,0 +1,59 @@
+/* LangMiniCard.module.css — StatCard와 같은 카드 셸, 내용은 top3 리스트 */
+.card {
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.en {
+  color: var(--faint);
+  margin-left: 4px;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.rank {
+  flex: 0 0 auto;
+  width: 16px;
+  color: var(--accent);
+  font-size: 11px;
+}
+.name {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text);
+}
+.count {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 13px;
+}
