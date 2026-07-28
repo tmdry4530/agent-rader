@@ -87,19 +87,22 @@ export async function trends(userId, limit = 10) {
 
 // 신생(윈도우일 이내 생성) 레포를 속도(스타/경과일) 순으로. velocity는 나이가
 // 매일 변하므로 저장하지 않고 조회 시 계산한다 (ADR-0005).
+// 신생(윈도우일 이내 생성) 레포를 "지금 뜨는 순"으로 — 직전 수집 대비 스타 증가(star_delta)
+// 우선, 동률(첫 수집 등)은 velocity(스타/경과일)로 보조 정렬 (ADR-0005 개정).
 export async function risingRepos(userId, windowDays, limit = 8) {
   const [rows] = await pool.query(
-    `SELECT id, full_name, language, stars, github_created_at,
+    `SELECT id, full_name, language, stars, star_delta, github_created_at,
             stars / GREATEST(DATEDIFF(NOW(), github_created_at), 1) AS velocity
      FROM repos
      WHERE user_id = ? AND github_created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-     ORDER BY velocity DESC, stars DESC
+     ORDER BY star_delta DESC, velocity DESC
      LIMIT ?`,
     [userId, Number(windowDays), Number(limit)]
   );
   return rows.map((r) => ({
     ...r,
     stars: Number(r.stars),
+    star_delta: Number(r.star_delta),
     velocity: Number(r.velocity),
     github_created_at: r.github_created_at ? new Date(r.github_created_at).toISOString() : null,
   }));

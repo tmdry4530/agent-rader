@@ -368,12 +368,13 @@ function risingRepos(query?: Record<string, unknown>): RisingRepo[] {
       full_name: r.full_name,
       language: r.language,
       stars: r.stars,
+      star_delta: r.star_delta,
       github_created_at: new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000).toISOString(),
       velocity: Math.round((r.stars / ageDays) * 10) / 10,
     };
   })
     .filter((x): x is RisingRepo => x !== null)
-    .sort((a, b) => b.velocity - a.velocity)
+    .sort((a, b) => b.star_delta - a.star_delta || b.velocity - a.velocity)
     .slice(0, limit);
 }
 function languages(): LanguageStat[] {

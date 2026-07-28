@@ -10,9 +10,11 @@ interface TrendTableProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  /** 좁은 컬럼에서 Lang 열을 숨겨 잘림 방지 */
+  compact?: boolean;
 }
 
-export default function TrendTable({ data, loading, error, onRetry }: TrendTableProps) {
+export default function TrendTable({ data, loading, error, onRetry, compact = false }: TrendTableProps) {
   const navigate = useNavigate();
 
   if (loading) return <LoadingState />;
@@ -36,7 +38,7 @@ export default function TrendTable({ data, loading, error, onRetry }: TrendTable
       <thead>
         <tr>
           <th>Repo</th>
-          <th>Lang</th>
+          {!compact && <th>Lang</th>}
           <th className="col-num">Stars</th>
           <th className="col-num">Δ</th>
         </tr>
@@ -55,13 +57,15 @@ export default function TrendTable({ data, loading, error, onRetry }: TrendTable
               <td>
                 <div className={`${styles.repoCell} truncate`}>{repo.full_name}</div>
               </td>
-              <td>
-                {repo.language ? (
-                  <span className="tag">{repo.language}</span>
-                ) : (
-                  <span className="faint">—</span>
-                )}
-              </td>
+              {!compact && (
+                <td>
+                  {repo.language ? (
+                    <span className="tag">{repo.language}</span>
+                  ) : (
+                    <span className="faint">—</span>
+                  )}
+                </td>
+              )}
               <td className="col-num">
                 <span className="stars">★ {formatStars(repo.stars)}</span>
               </td>

@@ -58,10 +58,34 @@ export default function DashboardPage() {
         ) : null}
       </div>
 
-      {/* ── 두 컬럼: 성장률 상위 ‖ (신생 급상승 + 언어 분포) ─────────── */}
+      {/* ── 두 컬럼: 신생 급상승(메인) ‖ (성장률 상위 + 언어 분포) ────── */}
       <div className={styles.columns}>
-        {/* 성장률 상위 */}
+        {/* 신생 급상승 — 메인 */}
         <div className={styles.trendCol}>
+          <div className="panel panel--flush">
+            <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
+              <span className="panel__title">신생 급상승</span>
+              <span className={styles.titleEn}>RISING · 최근 90일 내 생성</span>
+            </div>
+            <div className={styles.panelBody}>
+              {rising.loading ? (
+                <div style={{ padding: 'var(--pad)' }}>
+                  <LoadingState />
+                </div>
+              ) : (
+                <RisingTable
+                  data={rising.data}
+                  loading={rising.loading}
+                  error={rising.error}
+                  onRetry={rising.reload}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 오른쪽: 성장률 상위 + 언어 분포 */}
+        <div className={styles.langCol}>
           <div className="panel panel--flush">
             <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
               <span className="panel__title">성장률 상위</span>
@@ -78,30 +102,7 @@ export default function DashboardPage() {
                   loading={trends.loading}
                   error={trends.error}
                   onRetry={trends.reload}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 오른쪽: 신생 급상승 + 언어 분포 */}
-        <div className={styles.langCol}>
-          <div className="panel panel--flush">
-            <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-              <span className="panel__title">신생 급상승</span>
-              <span className={styles.titleEn}>RISING</span>
-            </div>
-            <div className={styles.panelBody}>
-              {rising.loading ? (
-                <div style={{ padding: 'var(--pad)' }}>
-                  <LoadingState />
-                </div>
-              ) : (
-                <RisingTable
-                  data={rising.data}
-                  loading={rising.loading}
-                  error={rising.error}
-                  onRetry={rising.reload}
+                  compact
                 />
               )}
             </div>

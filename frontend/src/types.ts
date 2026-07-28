@@ -109,6 +109,7 @@ export interface RisingRepo {
   full_name: string;
   language: string | null;
   stars: number;
+  star_delta: number;
   github_created_at: string;
   velocity: number;
 }
