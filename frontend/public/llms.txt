@@ -1,0 +1,33 @@
+# Trendar
+
+> Trendar is a GitHub trend radar: it tracks open-source repos matching your watch queries, snapshots star counts every 6 hours, and ranks repos by star growth rate (velocity) — surfacing what is rising *right now*, which GitHub's own search cannot show. Free, login with a GitHub account, no separate signup.
+
+지금 뜨는 GitHub 레포를 남들보다 먼저. 관심 키워드의 오픈소스를 6시간마다 추적해 스타 증가율(추세)로 급상승 레포를 골라주는 GitHub 트렌드 레이더.
+
+## 핵심 기능
+
+- **트렌드 추적**: 현재 스타 수가 아니라 스타 증가율(직전 스냅샷 대비 델타)로 급상승 레포를 랭킹
+- **신생 트렌드 발견**: 최근 생성 레포를 별도 슬라이스로 수집해 속도(스타 ÷ 경과일) 순으로 노출 — 역대 스타 상위에 가려진 신규 프로젝트를 포착
+- **목적형 수집**: 전체 크롤링이 아니라 사용자가 등록한 검색 조건(watch query)에 매칭되는 레포만 선별 수집
+- **시계열 스냅샷**: 시점별 지표를 쌓아 레포별 성장 추이를 차트로 제공
+- **생태계 분포**: 관심 영역의 언어·조건별 분포 집계
+- **큐레이션**: 관심 레포 북마크·메모
+- **멀티테넌트**: GitHub OAuth 로그인. 검색어·레포·북마크가 사용자별로 격리되고 수집도 각자의 토큰으로 실행
+
+## 동작 방식
+
+크론이 6시간마다 사용자별 검색 조건·토큰으로 GitHub Search API를 조회하고, 스냅샷을 적재해 `growth_rate = (이번 스타 − 저번 스타) / max(저번 스타, 1)`를 계산한다. 스타순 베이스라인과 신생 슬라이스를 병행 수집하며 실행 단위로 dedup한다.
+
+## FAQ
+
+- **무료인가?** 무료. 가입 없이 GitHub 계정으로 로그인하며 공개 정보만 사용한다.
+- **GitHub 트렌딩과 차이는?** GitHub은 현재 스타 수만 보여주지만 Trendar는 시점별 스냅샷으로 증가 추세를 직접 계산하고, 관심 키워드만 선별 추적한다.
+
+## 링크
+
+- [라이브 앱](https://trendar-production.up.railway.app/)
+- [GitHub 저장소](https://github.com/tmdry4530/trendar) — 아키텍처·스키마·셋업 문서 포함
+
+## 기술 스택
+
+TypeScript · Node.js · Express · node-cron · MySQL · React 18 · Vite · Recharts · GitHub Search API. Railway에 Docker 단일 컨테이너(통합 서빙)로 배포.

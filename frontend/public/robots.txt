@@ -1,0 +1,6 @@
+# Trendar — 검색엔진·AI 크롤러(GPTBot, ClaudeBot, PerplexityBot 등) 모두 환영
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://trendar-production.up.railway.app/sitemap.xml
