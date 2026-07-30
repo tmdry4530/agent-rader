@@ -18,7 +18,7 @@ related:
   - 요구사항: R1.1~R1.3, R5.2, R5.3
   - 완료 조건: `cd backend && npm test` 전부 통과(기존 + 신규), extract가 per_page 100 전달·100 초과 클램프 검증
 
-- [ ] **T2. 조회 쿼리 개편 — rising 30일·정체필터, trends 정체필터, bookmarks 신규**
+- [x] **T2. 조회 쿼리 개편 — rising 30일·정체필터, trends 정체필터, bookmarks 신규**
   - 의존: T1
   - 내용: `repo.model.js` — `risingRepos`에 `AND star_delta > 0` 추가(정렬 유지), `trends`에 `AND star_delta > 0` 추가, `bookmarkedRepos(userId, limit)` 신규(design §3 SQL). `repo.controller.js` `rising`이 `risingWindowDays()` 사용하도록 교체 + `bookmarks` 컨트롤러 신규. `routes/stats.routes.js`에 `GET /bookmarks` 등록
   - 요구사항: R2.1~R2.3, R3.1, R3.2, R4.1~R4.3

@@ -77,25 +77,25 @@ export async function stats(userId) {
   };
 }
 
+// 성장률 상위 — 정체 레포(star_delta<=0)는 제외 (trend-ranking-v2 R3.1).
 export async function trends(userId, limit = 10) {
   const [rows] = await pool.query(
-    'SELECT id, full_name, stars, star_delta, growth_rate, language FROM repos WHERE user_id = ? ORDER BY growth_rate DESC, star_delta DESC LIMIT ?',
+    'SELECT id, full_name, stars, star_delta, growth_rate, language FROM repos WHERE user_id = ? AND star_delta > 0 ORDER BY growth_rate DESC, star_delta DESC LIMIT ?',
     [userId, Number(limit)]
   );
   return rows.map((r) => ({ ...r, stars: Number(r.stars), star_delta: Number(r.star_delta), growth_rate: Number(r.growth_rate) }));
 }
 
-// 신생(윈도우일 이내 생성) 레포를 속도(스타/경과일) 순으로. velocity는 나이가
-// 매일 변하므로 저장하지 않고 조회 시 계산한다 (ADR-0005).
-// 신생(윈도우일 이내 생성) 레포를 "지금 뜨는 순"으로 — 직전 수집 대비 스타 증가(star_delta)
-// 우선, 동률(첫 수집 등)은 velocity(스타/경과일)로 보조 정렬 (ADR-0005 개정).
+// 신생(윈도우일 이내 생성) 레포를 "리얼 핫" 순으로 — 속도(star_delta/경과일) 내림차순.
+// 최근 증가 없는 정체 레포(star_delta<=0)는 제외한다 (ADR-0006, R2·R3).
 export async function risingRepos(userId, windowDays, limit = 8) {
   const [rows] = await pool.query(
     `SELECT id, full_name, language, stars, star_delta, github_created_at,
             stars / GREATEST(DATEDIFF(NOW(), github_created_at), 1) AS velocity
      FROM repos
-     WHERE user_id = ? AND github_created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-     ORDER BY star_delta DESC, velocity DESC
+     WHERE user_id = ? AND star_delta > 0
+       AND github_created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+     ORDER BY star_delta / GREATEST(DATEDIFF(NOW(), github_created_at), 1) DESC, star_delta DESC
      LIMIT ?`,
     [userId, Number(windowDays), Number(limit)]
   );
@@ -106,6 +106,18 @@ export async function risingRepos(userId, windowDays, limit = 8) {
     velocity: Number(r.velocity),
     github_created_at: r.github_created_at ? new Date(r.github_created_at).toISOString() : null,
   }));
+}
+
+// 관심 레포(북마크) — 대시보드 노출용. 최근 증가 순 (trend-ranking-v2 R4).
+export async function bookmarkedRepos(userId, limit = 8) {
+  const [rows] = await pool.query(
+    `SELECT id, full_name, language, stars, star_delta
+     FROM repos WHERE user_id = ? AND is_bookmarked = 1
+     ORDER BY star_delta DESC, stars DESC
+     LIMIT ?`,
+    [userId, Number(limit)]
+  );
+  return rows.map((r) => ({ ...r, stars: Number(r.stars), star_delta: Number(r.star_delta) }));
 }
 
 export async function languageDist(userId) {

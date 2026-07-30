@@ -6,4 +6,5 @@ r.get('/stats', c.stats);
 r.get('/stats/languages', c.languages);
 r.get('/trends', c.trends);
 r.get('/rising', c.rising);
+r.get('/bookmarks', c.bookmarks);
 export default r;
