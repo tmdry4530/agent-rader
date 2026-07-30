@@ -12,6 +12,7 @@ import type {
   Stats,
   TrendRepo,
   RisingRepo,
+  BookmarkRepo,
   LanguageStat,
   EtlRunResult,
   EtlStatus,
@@ -138,6 +139,7 @@ export async function mockFetch<T>(
   if (path === '/stats/languages' && m === 'GET') return languages() as T;
   if (path === '/trends' && m === 'GET') return trends(query) as T;
   if (path === '/rising' && m === 'GET') return risingRepos(query) as T;
+  if (path === '/bookmarks' && m === 'GET') return bookmarks(query) as T;
 
   throw new ApiError(`목 핸들러가 없습니다: ${method} ${path}`, 'NOT_FOUND', 404);
 }
@@ -340,6 +342,7 @@ function trends(query?: Record<string, unknown>): TrendRepo[] {
   const limit = query?.limit != null ? Number(query.limit) : 10;
   return repos
     .slice()
+    .filter((r) => r.star_delta > 0) // 정체 레포 숨김 (R3.1)
     .sort((a, b) => b.growth_rate - a.growth_rate)
     .slice(0, limit)
     .map((r) => ({
@@ -358,24 +361,41 @@ const RISING_SAMPLE: { id: number; ageDays: number }[] = [
   { id: 4, ageDays: 28 }, // mudrii/hermes-agent-docs — 4주 전 생성
   { id: 9, ageDays: 42 }, // toolhouse-ai/agent-tools — 6주 전 생성
 ];
+const RISING_WINDOW_DAYS = 30; // 노출 창 (design.md §2 — 수집은 90일, 노출은 30일)
 function risingRepos(query?: Record<string, unknown>): RisingRepo[] {
   const limit = query?.limit != null ? Number(query.limit) : 8;
-  return RISING_SAMPLE.map(({ id, ageDays }): RisingRepo | null => {
-    const r = repos.find((repo) => repo.id === id);
-    if (!r) return null;
-    return {
+  return RISING_SAMPLE.filter(({ ageDays }) => ageDays <= RISING_WINDOW_DAYS)
+    .map(({ id, ageDays }): RisingRepo | null => {
+      const r = repos.find((repo) => repo.id === id);
+      if (!r || r.star_delta <= 0) return null; // 정체 레포 숨김 (R2.3)
+      return {
+        id: r.id,
+        full_name: r.full_name,
+        language: r.language,
+        stars: r.stars,
+        star_delta: r.star_delta,
+        github_created_at: new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000).toISOString(),
+        velocity: Math.round((r.stars / ageDays) * 10) / 10,
+      };
+    })
+    .filter((x): x is RisingRepo => x !== null)
+    .sort((a, b) => b.star_delta - a.star_delta || b.velocity - a.velocity)
+    .slice(0, limit);
+}
+function bookmarks(query?: Record<string, unknown>): BookmarkRepo[] {
+  const limit = query?.limit != null ? Number(query.limit) : 8;
+  return repos
+    .filter((r) => r.is_bookmarked)
+    .slice()
+    .sort((a, b) => b.stars - a.stars)
+    .slice(0, limit)
+    .map((r) => ({
       id: r.id,
       full_name: r.full_name,
       language: r.language,
       stars: r.stars,
       star_delta: r.star_delta,
-      github_created_at: new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000).toISOString(),
-      velocity: Math.round((r.stars / ageDays) * 10) / 10,
-    };
-  })
-    .filter((x): x is RisingRepo => x !== null)
-    .sort((a, b) => b.star_delta - a.star_delta || b.velocity - a.velocity)
-    .slice(0, limit);
+    }));
 }
 function languages(): LanguageStat[] {
   const counts = new Map<string, number>();

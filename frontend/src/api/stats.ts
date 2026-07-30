@@ -4,6 +4,7 @@ import type {
   Stats,
   TrendRepo,
   RisingRepo,
+  BookmarkRepo,
   LanguageStat,
   EtlRunResult,
   EtlStatus,
@@ -14,6 +15,8 @@ export const getStats = () => api.get<Stats>('/stats');
 export const getTrends = (limit = 10) => api.get<TrendRepo[]>('/trends', { limit });
 
 export const getRising = (limit = 8) => api.get<RisingRepo[]>('/rising', { limit });
+
+export const getBookmarks = (limit = 8) => api.get<BookmarkRepo[]>('/bookmarks', { limit });
 
 export const getLanguages = () => api.get<LanguageStat[]>('/stats/languages');
 

@@ -24,7 +24,7 @@ related:
   - 요구사항: R2.1~R2.3, R3.1, R3.2, R4.1~R4.3
   - 완료 조건: `node -c` 통과, SQL이 design 문장과 일치(WHERE·ORDER·user 스코프), `npm test` 무회귀
 
-- [ ] **T3. 프론트 — 관심 레포 섹션 + 목/타입 반영**
+- [x] **T3. 프론트 — 관심 레포 섹션 + 목/타입 반영**
   - 의존: T2
   - 내용: `types.ts` `BookmarkRepo`, `api/stats.ts` `getBookmarks`, `api/mock.ts` `/bookmarks` 핸들러(시드 북마크) + `/rising`·`/trends` 목에 `star_delta>0` 필터·30일 창 반영. `components/BookmarkTable.tsx`(+css, table--dense 톤). `DashboardPage.tsx` 2열 아래 전체폭 관심 레포 패널 추가, 빈 상태 안내
   - 요구사항: R3.3, R4.1, R4.2, R4.4

@@ -1,0 +1,13 @@
+/* BookmarkTable.module.css */
+
+.repoCell {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.empty {
+  padding: var(--pad);
+  color: var(--faint);
+  font-size: 13px;
+}

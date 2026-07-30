@@ -1,11 +1,12 @@
 // DashboardPage.tsx — 대시보드: KPI 카드 5개(언어 top3 포함) + 신생 급상승 · 성장률 상위
 import { useAsync } from '../lib/useAsync';
-import { getStats, getTrends, getRising, getLanguages } from '../api/stats';
+import { getStats, getTrends, getRising, getBookmarks, getLanguages } from '../api/stats';
 import { formatCompactAge, formatInt } from '../lib/format';
 import { LoadingState, ErrorState } from '../components/States';
 import StatCard from '../components/StatCard';
 import TrendTable from '../components/TrendTable';
 import RisingTable from '../components/RisingTable';
+import BookmarkTable from '../components/BookmarkTable';
 import LangMiniCard from '../components/LangMiniCard';
 import styles from './DashboardPage.module.css';
 
@@ -13,6 +14,7 @@ export default function DashboardPage() {
   const stats = useAsync(() => getStats(), []);
   const trends = useAsync(() => getTrends(8), []);
   const rising = useAsync(() => getRising(8), []);
+  const bookmarks = useAsync(() => getBookmarks(), []);
   const languages = useAsync(() => getLanguages(), []);
 
   return (
@@ -67,7 +69,7 @@ export default function DashboardPage() {
           <div className={`panel panel--flush ${styles.fillPanel}`}>
             <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
               <span className="panel__title">신생 급상승</span>
-              <span className={styles.titleEn}>RISING · 최근 90일 내 생성</span>
+              <span className={styles.titleEn}>RISING · 최근 30일 내 생성</span>
             </div>
             <div className={styles.panelBody}>
               {rising.loading ? (
@@ -108,6 +110,28 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── 관심 레포 — 전체폭 ─────────────────────────────────────────── */}
+      <div className="panel panel--flush" style={{ marginTop: 'var(--gap)' }}>
+        <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
+          <span className="panel__title">관심 레포</span>
+          <span className={styles.titleEn}>BOOKMARKS</span>
+        </div>
+        <div className={styles.panelBody}>
+          {bookmarks.loading ? (
+            <div style={{ padding: 'var(--pad)' }}>
+              <LoadingState />
+            </div>
+          ) : (
+            <BookmarkTable
+              data={bookmarks.data}
+              loading={bookmarks.loading}
+              error={bookmarks.error}
+              onRetry={bookmarks.reload}
+            />
+          )}
         </div>
       </div>
     </div>

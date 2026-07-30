@@ -114,6 +114,15 @@ export interface RisingRepo {
   velocity: number;
 }
 
+/** GET /api/bookmarks 항목 (관심 레포) */
+export interface BookmarkRepo {
+  id: number;
+  full_name: string;
+  language: string | null;
+  stars: number;
+  star_delta: number;
+}
+
 /** GET /api/stats/languages 항목 */
 export interface LanguageStat {
   language: string | null;
