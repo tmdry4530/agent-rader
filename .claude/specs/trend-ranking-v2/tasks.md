@@ -30,7 +30,7 @@ related:
   - 요구사항: R3.3, R4.1, R4.2, R4.4
   - 완료 조건: `cd frontend && npm run build`(tsc+vite) 통과, 목 모드 헤드리스 스크린샷으로 관심 레포 렌더·빈 상태·정체 필터 확인
 
-- [ ] **T4. 배포 + 실서비스 검증**
+- [x] **T4. 배포 + 실서비스 검증**
   - 의존: T3
   - 내용: 커밋·푸시 → Railway 자동 배포 → 부팅 정상 → `/api/bookmarks` 응답, `/api/rising`·`/api/trends`가 정체 레포 제외 확인. `.env.example`에 `RISING_WINDOW_DAYS` 추가, `ETL_PER_QUERY` 기본값 주석 갱신
   - 요구사항: R1, 성공 기준 전체
