@@ -1,7 +1,7 @@
 // test/extract.test.js — extractRepos 질의 조립 검증 (옵션 주입형 시그니처)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractRepos } from '../src/etl/extract.js';
+import { extractRepos, perPage } from '../src/etl/extract.js';
 
 function makeOctokit() {
   let captured = null;
@@ -58,10 +58,10 @@ test('createdAfter + minStars 함께 — created 뒤에 stars 절', async () => 
   assert.equal(octokit.captured.q, 'agents in:name,description,readme created:>2026-04-20 stars:>=50');
 });
 
-test('per_page는 ETL_PER_QUERY(미설정 시 기본 30)를 유지한다', async () => {
+test('per_page는 ETL_PER_QUERY(미설정 시 기본 100)를 유지한다', async () => {
   const octokit = makeOctokit();
   await extractRepos(keywordWq, octokit, { minStars: 10 });
-  assert.equal(octokit.captured.per_page, 30);
+  assert.equal(octokit.captured.per_page, 100);
 });
 
 test('minStars 미지정 + env ETL_MIN_STARS — 기존처럼 env로 폴백한다', async () => {
@@ -76,5 +76,28 @@ test('minStars 미지정 + env ETL_MIN_STARS — 기존처럼 env로 폴백한�
   } finally {
     if (orig === undefined) delete process.env.ETL_MIN_STARS;
     else process.env.ETL_MIN_STARS = orig;
+  }
+});
+
+test('per_page — 기본 100으로 요청', async () => {
+  const octokit = makeOctokit();
+  await extractRepos(keywordWq, octokit);
+  assert.equal(octokit.captured.per_page, 100);
+});
+
+test('perPage — 기본 100, env 반영, 100 초과는 클램프', () => {
+  const orig = process.env.ETL_PER_QUERY;
+  try {
+    delete process.env.ETL_PER_QUERY;
+    assert.equal(perPage(), 100);
+    process.env.ETL_PER_QUERY = '30';
+    assert.equal(perPage(), 30);
+    process.env.ETL_PER_QUERY = '500';
+    assert.equal(perPage(), 100);
+    process.env.ETL_PER_QUERY = 'abc';
+    assert.equal(perPage(), 100);
+  } finally {
+    if (orig === undefined) delete process.env.ETL_PER_QUERY;
+    else process.env.ETL_PER_QUERY = orig;
   }
 });

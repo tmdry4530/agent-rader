@@ -5,6 +5,7 @@ const DEFAULT_MAX_QUERIES_PER_USER = 10;
 const DEFAULT_MAX_MANUAL_ETL_PER_DAY = 10;
 const DEFAULT_TREND_WINDOW_DAYS = 90;
 const DEFAULT_TREND_MIN_STARS = 50;
+const DEFAULT_RISING_WINDOW_DAYS = 30;
 
 export function maxQueriesPerUser() {
   const raw = process.env.MAX_QUERIES_PER_USER;
@@ -28,6 +29,12 @@ export function trendWindowDays() {
 export function trendMinStars() {
   const parsed = Number(process.env.ETL_TREND_MIN_STARS);
   if (!Number.isInteger(parsed) || parsed < 0) return DEFAULT_TREND_MIN_STARS;
+  return parsed;
+}
+
+export function risingWindowDays() {
+  const parsed = Number(process.env.RISING_WINDOW_DAYS);
+  if (!Number.isInteger(parsed) || parsed <= 0) return DEFAULT_RISING_WINDOW_DAYS;
   return parsed;
 }
 

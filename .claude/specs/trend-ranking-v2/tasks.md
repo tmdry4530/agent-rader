@@ -12,7 +12,7 @@ related:
 > 체크박스가 실행 상태의 단일 진실 공급원. 완료 = 완료 조건 + 연결된 인수 조건 충족 + 관련 테스트 통과.
 > `의존:` 필드는 claude-flow 병렬 스케줄링 입력.
 
-- [ ] **T1. 수집 깊이 100 + 설정(risingWindowDays) + 테스트**
+- [x] **T1. 수집 깊이 100 + 설정(risingWindowDays) + 테스트**
   - 의존: 없음
   - 내용: `extract.js` `PER = Math.min(env ETL_PER_QUERY || 100, 100)`. `utils/limits.js`에 `risingWindowDays()`(env `RISING_WINDOW_DAYS`, 기본 30, 양의 정수). `test/extract.test.js`에 per_page=100·클램프 케이스, `test/kst.test.js`에 risingWindowDays 케이스 추가
   - 요구사항: R1.1~R1.3, R5.2, R5.3
