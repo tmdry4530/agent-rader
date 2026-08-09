@@ -69,7 +69,7 @@ export default function DashboardPage() {
           <div className={`panel panel--flush ${styles.fillPanel}`}>
             <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
               <span className="panel__title">신생 급상승</span>
-              <span className={styles.titleEn}>RISING · 최근 30일 내 생성</span>
+              <span className={styles.titleEn}>RISING · 30일 내 생성 · 500★+ · Δ24H</span>
             </div>
             <div className={styles.panelBody}>
               {rising.loading ? (

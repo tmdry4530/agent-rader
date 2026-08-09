@@ -1,7 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { kstToday, kstNextMidnight } from '../src/utils/kst.js';
-import { maxManualEtlPerDay, trendWindowDays, trendMinStars, risingWindowDays } from '../src/utils/limits.js';
+import {
+  maxManualEtlPerDay,
+  trendWindowDays,
+  trendMinStars,
+  risingWindowDays,
+  risingMinStars,
+} from '../src/utils/limits.js';
 
 // KST 자정 = UTC 15:00. 경계 전후로 날짜가 정확히 넘어가야 한다.
 
@@ -111,5 +117,22 @@ test('risingWindowDays — 기본 30, env 양의 정수면 반영, 비정상 값
   } finally {
     if (orig === undefined) delete process.env.RISING_WINDOW_DAYS;
     else process.env.RISING_WINDOW_DAYS = orig;
+  }
+});
+
+test('risingMinStars — 기본 500, env 양의 정수면 반영, 비정상 값은 기본값', () => {
+  const orig = process.env.RISING_MIN_STARS;
+  try {
+    delete process.env.RISING_MIN_STARS;
+    assert.equal(risingMinStars(), 500);
+    process.env.RISING_MIN_STARS = '800';
+    assert.equal(risingMinStars(), 800);
+    process.env.RISING_MIN_STARS = '0';
+    assert.equal(risingMinStars(), 500);
+    process.env.RISING_MIN_STARS = 'abc';
+    assert.equal(risingMinStars(), 500);
+  } finally {
+    if (orig === undefined) delete process.env.RISING_MIN_STARS;
+    else process.env.RISING_MIN_STARS = orig;
   }
 });

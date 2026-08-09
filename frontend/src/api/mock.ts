@@ -362,24 +362,34 @@ const RISING_SAMPLE: { id: number; ageDays: number }[] = [
   { id: 9, ageDays: 42 }, // toolhouse-ai/agent-tools — 6주 전 생성
 ];
 const RISING_WINDOW_DAYS = 30; // 노출 창 (design.md §2 — 수집은 90일, 노출은 30일)
+const RISING_MIN_STARS = 500;
 function risingRepos(query?: Record<string, unknown>): RisingRepo[] {
   const limit = query?.limit != null ? Number(query.limit) : 8;
   return RISING_SAMPLE.filter(({ ageDays }) => ageDays <= RISING_WINDOW_DAYS)
     .map(({ id, ageDays }): RisingRepo | null => {
       const r = repos.find((repo) => repo.id === id);
-      if (!r || r.star_delta <= 0) return null; // 정체 레포 숨김 (R2.3)
+      if (!r || r.stars < RISING_MIN_STARS) return null;
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      const baseline = snapshots[id]
+        ?.filter((snapshot) => new Date(snapshot.captured_at).getTime() <= cutoff)
+        .at(-1);
+      if (!baseline) return null;
+      const starDelta24h = r.stars - baseline.stars;
+      if (starDelta24h <= 0) return null;
       return {
         id: r.id,
         full_name: r.full_name,
         language: r.language,
         stars: r.stars,
         star_delta: r.star_delta,
+        star_delta_24h: starDelta24h,
+        growth_rate_24h: starDelta24h / Math.max(baseline.stars, 1),
         github_created_at: new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000).toISOString(),
         velocity: Math.round((r.stars / ageDays) * 10) / 10,
       };
     })
     .filter((x): x is RisingRepo => x !== null)
-    .sort((a, b) => b.star_delta - a.star_delta || b.velocity - a.velocity)
+    .sort((a, b) => b.star_delta_24h - a.star_delta_24h || b.growth_rate_24h - a.growth_rate_24h)
     .slice(0, limit);
 }
 function bookmarks(query?: Record<string, unknown>): BookmarkRepo[] {

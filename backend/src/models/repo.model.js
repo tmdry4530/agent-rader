@@ -86,24 +86,42 @@ export async function trends(userId, limit = 10) {
   return rows.map((r) => ({ ...r, stars: Number(r.stars), star_delta: Number(r.star_delta), growth_rate: Number(r.growth_rate) }));
 }
 
-// 신생(윈도우일 이내 생성) 레포를 "리얼 핫" 순으로 — 속도(star_delta/경과일) 내림차순.
-// 최근 증가 없는 정체 레포(star_delta<=0)는 제외한다 (ADR-0006, R2·R3).
-export async function risingRepos(userId, windowDays, limit = 8) {
-  const [rows] = await pool.query(
-    `SELECT id, full_name, language, stars, star_delta, github_created_at,
-            stars / GREATEST(DATEDIFF(NOW(), github_created_at), 1) AS velocity
-     FROM repos
-     WHERE user_id = ? AND star_delta > 0
-       AND github_created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-     ORDER BY star_delta / GREATEST(DATEDIFF(NOW(), github_created_at), 1) DESC, star_delta DESC
-     LIMIT ?`,
-    [userId, Number(windowDays), Number(limit)]
-  );
+export function buildRisingQuery(userId, { windowDays, minStars, limit }) {
+  return {
+    sql: `SELECT r.id, r.full_name, r.language, r.stars, r.star_delta, r.github_created_at,
+                 r.stars / GREATEST(DATEDIFF(NOW(), r.github_created_at), 1) AS velocity,
+                 r.stars - baseline.stars AS star_delta_24h,
+                 (r.stars - baseline.stars) / GREATEST(baseline.stars, 1) AS growth_rate_24h
+          FROM repos r
+          JOIN repo_snapshots baseline ON baseline.id = (
+            SELECT s.id
+            FROM repo_snapshots s
+            WHERE s.repo_id = r.id
+              AND s.captured_at <= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            ORDER BY s.captured_at DESC, s.id DESC
+            LIMIT 1
+          )
+          WHERE r.user_id = ?
+            AND r.stars >= ?
+            AND r.github_created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+            AND r.stars > baseline.stars
+          ORDER BY star_delta_24h DESC, growth_rate_24h DESC
+          LIMIT ?`,
+    params: [Number(userId), Number(minStars), Number(windowDays), Number(limit)],
+  };
+}
+
+// 신생 레포를 동일한 24시간 기준 증가량으로 비교한다. 기준선이 없는 레포는 JOIN에서 제외된다.
+export async function risingRepos(userId, windowDays, limit = 8, minStars = 500) {
+  const { sql, params } = buildRisingQuery(userId, { windowDays, minStars, limit });
+  const [rows] = await pool.query(sql, params);
   return rows.map((r) => ({
     ...r,
     stars: Number(r.stars),
     star_delta: Number(r.star_delta),
     velocity: Number(r.velocity),
+    star_delta_24h: Number(r.star_delta_24h),
+    growth_rate_24h: Number(r.growth_rate_24h),
     github_created_at: r.github_created_at ? new Date(r.github_created_at).toISOString() : null,
   }));
 }
