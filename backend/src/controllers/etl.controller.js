@@ -17,7 +17,7 @@ export function createEtlController(deps) {
       if (req.query.query_id !== undefined && req.query.query_id !== '') {
         queryId = Number(req.query.query_id);
         if (!Number.isInteger(queryId) || queryId <= 0) {
-          throw httpError(400, 'VALIDATION_ERROR', 'query_id가 올바르지 않습니다.');
+          throw httpError(400, 'VALIDATION_ERROR', '수집 조건을 확인해 주세요.');
         }
       }
       const consumed = await users.consumeManualEtl(req.user.id, today, max);
@@ -25,7 +25,7 @@ export function createEtlController(deps) {
         throw httpError(
           429,
           'ETL_DAILY_LIMIT_EXCEEDED',
-          `오늘의 수동 수집 한도(${max}회)를 모두 사용했습니다. KST 자정에 초기화됩니다.`
+          '오늘 수동 수집 횟수를 모두 사용했습니다. 한국 시간 자정에 다시 사용할 수 있습니다.'
         );
       }
       let result;
@@ -55,7 +55,7 @@ export function createEtlController(deps) {
       res.json({ ok: true, data: {
         last_etl_at: user?.last_etl_at ?? null,
         last_etl_status: user?.last_etl_status ?? null,
-        last_etl_message: user?.last_etl_message ?? null,
+        last_etl_message: safeCollectionMessage(user),
         running: pipeline.isRunning(req.user.id),
         cron: process.env.ETL_CRON || '0 */6 * * *',
         manual_used_today: used,
@@ -67,6 +67,13 @@ export function createEtlController(deps) {
   }
 
   return { run, status };
+}
+
+function safeCollectionMessage(user) {
+  if (!user?.last_etl_at) return null;
+  if (user.last_etl_status === 'token_invalid') return 'GitHub 연결이 만료되었습니다. 다시 로그인해 주세요.';
+  if (user.last_etl_status === 'error') return '일부 수집 조건을 처리하지 못했습니다.';
+  return '수집을 완료했습니다.';
 }
 
 export const { run, status } = createEtlController({

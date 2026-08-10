@@ -20,7 +20,7 @@ export async function list(req, res, next) {
 export async function detail(req, res, next) {
   try {
     const data = await Repo.findById(req.user.id, Number(req.params.id));
-    if (!data) throw httpError(404, 'NOT_FOUND', '레포를 찾을 수 없습니다.');
+    if (!data) throw httpError(404, 'NOT_FOUND', '프로젝트를 찾을 수 없습니다.');
     res.json({ ok: true, data });
   } catch (e) { next(e); }
 }
@@ -33,14 +33,14 @@ export async function snapshots(req, res, next) {
 export async function update(req, res, next) {
   try {
     const data = await Repo.update(req.user.id, Number(req.params.id), req.body ?? {});
-    if (!data) throw httpError(404, 'NOT_FOUND', '레포를 찾을 수 없습니다.');
+    if (!data) throw httpError(404, 'NOT_FOUND', '프로젝트를 찾을 수 없습니다.');
     res.json({ ok: true, data });
   } catch (e) { next(e); }
 }
 
 export async function remove(req, res, next) {
   try {
-    if (!await Repo.remove(req.user.id, Number(req.params.id))) throw httpError(404, 'NOT_FOUND', '레포를 찾을 수 없습니다.');
+    if (!await Repo.remove(req.user.id, Number(req.params.id))) throw httpError(404, 'NOT_FOUND', '프로젝트를 찾을 수 없습니다.');
     res.json({ ok: true, data: { deleted: true } });
   } catch (e) { next(e); }
 }

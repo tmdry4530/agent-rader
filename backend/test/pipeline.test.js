@@ -173,9 +173,10 @@ test('비401 쿼리 오류: errors에 기록되고 나머지 쿼리는 계속, s
 
   const result = await runner.runPipelineForUser(5);
 
-  // 조건당 2 슬라이스 → query#10은 base·trend 모두 throw 하므로 슬라이스마다 1건씩 기록된다.
+  // 조건당 두 수집 경로가 모두 실패하므로 사용자용 오류도 두 건 기록된다.
   assert.equal(result.errors.length, 2, '한 조건이 두 슬라이스 모두에서 실패하면 슬라이스별로 격리 기록');
-  assert.match(result.errors[0], /query#10/);
+  assert.equal(result.errors[0], '수집 조건을 처리하지 못했습니다.');
+  assert.doesNotMatch(result.errors.join(' '), /query#|base|trend|boom|bad/);
   // 슬라이스 실패는 격리되고 조건 루프는 완료되므로, 실패한 조건도 processed로 집계된다 (요건 5).
   assert.equal(result.queries_processed, 2, '두 조건 모두 조건 루프 완료 → processed');
   assert.equal(result.repos_upserted, 1);
@@ -258,8 +259,8 @@ test('trend 슬라이스만 throw → base 결과 저장·errors 기록·다음 
   const result = await runner.runPipelineForUser(12);
 
   assert.equal(result.errors.length, 1, 'trend 슬라이스 실패 1건만 격리');
-  assert.match(result.errors[0], /query#10/);
-  assert.match(result.errors[0], /\[trend\]/, '실패한 슬라이스가 라벨로 식별됨');
+  assert.equal(result.errors[0], '수집 조건을 처리하지 못했습니다.');
+  assert.doesNotMatch(result.errors[0], /query#|trend|boom|first/);
   assert.equal(result.repos_upserted, 2, '조건10 base(300)·조건11(301) 저장 — 다음 조건 계속');
   assert.equal(result.queries_processed, 2);
   assert.equal(users.calls.setTokenInvalid.length, 0, '일반 에러는 토큰 무효화 아님');

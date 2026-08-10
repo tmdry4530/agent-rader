@@ -63,7 +63,7 @@ export function createEtlRunner(deps) {
       } catch (e) {
         console.error(`[etl] user#${userId} 토큰 복호화 실패:`, e.message);
         await users.setTokenInvalid(userId);
-        await users.updateEtlResult(userId, { status: 'token_invalid', message: 'GitHub 토큰 복호화에 실패했습니다.' });
+        await users.updateEtlResult(userId, { status: 'token_invalid', message: TOKEN_INVALID_MESSAGE });
         throw preflightError(409, 'GITHUB_TOKEN_INVALID', TOKEN_INVALID_MESSAGE);
       }
 
@@ -103,10 +103,10 @@ export function createEtlRunner(deps) {
             console.error(`[etl] user#${userId} query#${wq.id} [${slice.label}] 수집 실패:`, e);
             if (e.status === 401) {
               await users.setTokenInvalid(userId);
-              await users.updateEtlResult(userId, { status: 'token_invalid', message: 'GitHub 인증에 실패했습니다 (401).' });
+              await users.updateEtlResult(userId, { status: 'token_invalid', message: TOKEN_INVALID_MESSAGE });
               throw httpError(409, 'GITHUB_TOKEN_INVALID', TOKEN_INVALID_MESSAGE);
             }
-            result.errors.push(`query#${wq.id} ${wq.query} [${slice.label}]: ${e.message}`);
+            result.errors.push('수집 조건을 처리하지 못했습니다.');
           }
         }
         result.queries_processed++;
@@ -114,8 +114,8 @@ export function createEtlRunner(deps) {
 
       const status = result.errors.length ? 'error' : 'ok';
       const message = result.errors.length
-        ? result.errors.join('; ')
-        : `쿼리 ${result.queries_processed}건, 저장소 ${result.repos_upserted}건 수집`;
+        ? `수집 조건 ${result.queries_processed}개를 처리하는 중 일부 항목을 수집하지 못했습니다.`
+        : `수집 조건 ${result.queries_processed}개에서 프로젝트 ${result.repos_upserted}개를 수집했습니다.`;
       await users.updateEtlResult(userId, { status, message });
       return result;
     } finally {

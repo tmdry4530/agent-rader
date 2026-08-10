@@ -48,6 +48,6 @@ export function risingMinStars() {
 export function assertQueryLimit(currentCount) {
   const max = maxQueriesPerUser();
   if (currentCount >= max) {
-    throw httpError(400, 'QUERY_LIMIT_EXCEEDED', `조건은 사용자당 최대 ${max}개까지 등록할 수 있습니다.`);
+    throw httpError(400, 'QUERY_LIMIT_EXCEEDED', `수집 조건은 사용자당 최대 ${max}개까지 등록할 수 있습니다.`);
   }
 }

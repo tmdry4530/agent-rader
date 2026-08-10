@@ -64,7 +64,7 @@ test('run — 한도 도달이면 429 + 파이프라인 미호출 (R1.2)', async
   await c.run(req, makeRes(), (e) => { err = e; });
   assert.equal(err.status, 429);
   assert.equal(err.code, 'ETL_DAILY_LIMIT_EXCEEDED');
-  assert.match(err.message, /10회/);
+  assert.equal(err.message, '오늘 수동 수집 횟수를 모두 사용했습니다. 한국 시간 자정에 다시 사용할 수 있습니다.');
   assert.equal(calls.run.length, 0);
 });
 
