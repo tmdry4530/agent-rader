@@ -25,7 +25,7 @@
 
 ## 링크
 
-- [라이브 앱](https://trendar-production.up.railway.app/)
+- [라이브 앱](https://trendar.org/)
 - [GitHub 저장소](https://github.com/tmdry4530/trendar) — 아키텍처·스키마·셋업 문서 포함
 
 ## 기술 스택

@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://trendar-production.up.railway.app/sitemap.xml
+Sitemap: https://trendar.org/sitemap.xml

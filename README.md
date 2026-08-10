@@ -2,7 +2,7 @@
 
 > **지금 뜨는 GitHub 레포를 남들보다 먼저.** — 관심 키워드의 오픈소스를 추적해 *스타 증가율(추세)* 로 급상승 레포를 골라주는 GitHub 트렌드 레이더.
 
-**라이브 데모 → https://trendar-production.up.railway.app** (GitHub 계정으로 로그인, 가입 불필요)
+**라이브 데모 → https://trendar.org** (GitHub 계정으로 로그인, 가입 불필요)
 
 ---
 
