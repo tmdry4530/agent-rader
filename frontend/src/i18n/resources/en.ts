@@ -21,4 +21,7 @@ export const en = {
     english: 'English',
     detecting: 'Choosing the best language…',
   },
+  auth: {
+    checking: 'Checking your sign-in status…',
+  },
 } as const satisfies TranslationShape<typeof ko>;

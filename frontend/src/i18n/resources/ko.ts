@@ -18,6 +18,9 @@ export const ko = {
     english: 'English',
     detecting: '알맞은 언어를 확인하는 중…',
   },
+  auth: {
+    checking: '로그인 상태를 확인하는 중…',
+  },
 } as const;
 
 export type TranslationShape<T> = {

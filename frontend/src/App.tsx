@@ -8,15 +8,17 @@ import RepoDetailPage from './pages/RepoDetailPage';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './auth/AuthContext';
 import { LoadingState } from './components/States';
+import { useTranslation } from 'react-i18next';
 
 export default function App() {
   const { status } = useAuth();
+  const { t } = useTranslation();
 
   if (status === 'loading') {
     return (
       <div className="app-shell">
         <main className="container">
-          <LoadingState label="인증 확인 중…" />
+          <LoadingState label={t('auth.checking')} />
         </main>
       </div>
     );
