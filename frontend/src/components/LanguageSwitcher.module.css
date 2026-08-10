@@ -1,0 +1,25 @@
+.select {
+  min-width: 86px;
+  height: 30px;
+  padding: 0 26px 0 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.select:hover,
+.select:focus-visible {
+  color: var(--text);
+  border-color: var(--accent-dim);
+}
+
+@media (max-width: 640px) {
+  .select {
+    min-width: 72px;
+    width: 72px;
+  }
+}

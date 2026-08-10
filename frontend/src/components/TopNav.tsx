@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { USE_MOCK } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
+import { useTranslation } from 'react-i18next';
 import ConfirmDialog from './ConfirmDialog';
+import LanguageSwitcher from './LanguageSwitcher';
 import styles from './TopNav.module.css';
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -10,6 +12,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function TopNav() {
   const { me, logout, deleteAccount } = useAuth();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -56,25 +59,27 @@ export default function TopNav() {
           <NavLink to="/" className={styles.brand}>
             <span className={styles.logo}>◎</span>
             <span className={styles.brandName}>Trendar</span>
-            <span className={styles.tagline}>// github trend radar</span>
+            <span className={styles.tagline}>{t('nav.tagline')}</span>
           </NavLink>
 
           <nav className={styles.links}>
             <NavLink to="/" end className={linkClass}>
-              Dashboard
+              {t('nav.dashboard')}
             </NavLink>
             <NavLink to="/queries" className={linkClass}>
-              Queries
+              {t('nav.filters')}
             </NavLink>
             <NavLink to="/repos" className={linkClass}>
-              Repos
+              {t('nav.projects')}
             </NavLink>
           </nav>
 
+          <LanguageSwitcher />
+
           {USE_MOCK && (
-            <div className={styles.status} title="목 데이터 모드">
+            <div className={styles.status} title={t('nav.sampleDataMode')}>
               <span className="dot dot--off" />
-              <span className={styles.statusText}>mock</span>
+              <span className={styles.statusText}>{t('nav.sampleData')}</span>
             </div>
           )}
 
@@ -86,6 +91,7 @@ export default function TopNav() {
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
+                aria-label={t('nav.accountMenu', { user: me.user.login })}
               >
                 {me.user.avatarUrl ? (
                   <img src={me.user.avatarUrl} alt="" className={styles.avatar} />
@@ -100,7 +106,7 @@ export default function TopNav() {
               {menuOpen && (
                 <div className={styles.dropdown} role="menu">
                   <button type="button" className={styles.dropdownItem} role="menuitem" onClick={handleLogout}>
-                    로그아웃
+                    {t('nav.logout')}
                   </button>
                   <button
                     type="button"
@@ -111,7 +117,7 @@ export default function TopNav() {
                       setConfirmOpen(true);
                     }}
                   >
-                    계정 삭제
+                    {t('nav.deleteAccount')}
                   </button>
                 </div>
               )}
@@ -122,9 +128,9 @@ export default function TopNav() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="계정 삭제"
-        message="계정과 모든 데이터(검색 조건·수집 레포·북마크·메모)가 영구 삭제됩니다. 되돌릴 수 없습니다."
-        confirmLabel="영구 삭제"
+        title={t('nav.deleteAccount')}
+        message={t('nav.deleteAccountMessage')}
+        confirmLabel={t('nav.deletePermanently')}
         danger
         busy={deleting}
         onConfirm={handleDeleteConfirm}
