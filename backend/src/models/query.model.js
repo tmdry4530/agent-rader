@@ -1,4 +1,5 @@
 import { pool } from '../config/db.js';
+import { assertQueryLimit } from '../utils/limits.js';
 
 export async function findAll(userId) {
   const [rows] = await pool.query(
@@ -12,11 +13,27 @@ export async function findAll(userId) {
 }
 
 export async function create(userId, { query, query_type = 'keyword' }) {
-  const [res] = await pool.query(
-    'INSERT INTO watch_queries (user_id, query, query_type) VALUES (?, ?, ?)',
-    [userId, query, query_type]
-  );
-  return { id: res.insertId, query, query_type, is_active: true, repo_count: 0, created_at: new Date().toISOString() };
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.query('SELECT id FROM users WHERE id = ? FOR UPDATE', [userId]);
+    const [[{ c }]] = await connection.query(
+      'SELECT COUNT(*) AS c FROM watch_queries WHERE user_id = ?',
+      [userId]
+    );
+    assertQueryLimit(Number(c));
+    const [res] = await connection.query(
+      'INSERT INTO watch_queries (user_id, query, query_type) VALUES (?, ?, ?)',
+      [userId, query, query_type]
+    );
+    await connection.commit();
+    return { id: res.insertId, query, query_type, is_active: true, repo_count: 0, created_at: new Date().toISOString() };
+  } catch (e) {
+    try { await connection.rollback(); } catch { /* preserve the original error */ }
+    throw e;
+  } finally {
+    connection.release();
+  }
 }
 
 export async function update(userId, id, fields) {
@@ -38,9 +55,4 @@ export async function update(userId, id, fields) {
 export async function remove(userId, id) {
   const [res] = await pool.query('DELETE FROM watch_queries WHERE id = ? AND user_id = ?', [id, userId]);
   return res.affectedRows > 0;
-}
-
-export async function countByUser(userId) {
-  const [[{ c }]] = await pool.query('SELECT COUNT(*) AS c FROM watch_queries WHERE user_id = ?', [userId]);
-  return Number(c);
 }

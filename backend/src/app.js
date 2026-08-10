@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import queryRoutes from './routes/query.routes.js';
 import repoRoutes from './routes/repo.routes.js';
 import etlRoutes from './routes/etl.routes.js';
@@ -14,7 +14,19 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+app.disable('x-powered-by');
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  frameguard: { action: 'deny' },
+}));
 app.use(express.json());
 app.use(cookieParser());
 

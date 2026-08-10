@@ -12,39 +12,71 @@ function createResponse() {
 }
 
 test('국가와 브라우저 언어를 판정해 locale 하나만 반환한다', async () => {
-  let receivedIp;
-  const controller = createLocalizationController({
-    countryResolver: { resolve: async (ip) => { receivedIp = ip; return 'KR'; } },
-    getClientIp: () => '8.8.8.8',
-  });
+  const controller = createLocalizationController();
   const res = createResponse();
 
-  await controller.show({ headers: { 'accept-language': 'en-US,en;q=0.9' } }, res);
+  await controller.show({
+    headers: {
+      'cf-ipcountry': 'KR',
+      'accept-language': 'en-US,en;q=0.9',
+    },
+  }, res);
 
-  assert.equal(receivedIp, '8.8.8.8');
   assert.deepEqual(res.body, { ok: true, data: { locale: 'ko' } });
   assert.equal(res.headers['cache-control'], 'private, no-store');
   assert.equal(JSON.stringify(res.body).includes('KR'), false);
-  assert.equal(JSON.stringify(res.body).includes('8.8.8.8'), false);
 });
 
-test('국가 조회 실패는 API 오류가 아니라 브라우저 언어로 대체한다', async () => {
-  const controller = createLocalizationController({
-    countryResolver: { resolve: async () => { throw new Error('provider failed'); } },
-    getClientIp: () => '1.1.1.1',
-  });
+test('유효한 Cloudflare 국가가 브라우저 언어보다 우선한다', async () => {
+  const controller = createLocalizationController();
   const res = createResponse();
 
-  await controller.show({ headers: { 'accept-language': 'ko-KR,ko;q=0.9' } }, res);
+  await controller.show({
+    headers: {
+      'cf-ipcountry': 'US',
+      'accept-language': 'ko-KR,ko;q=0.9',
+    },
+  }, res);
 
-  assert.deepEqual(res.body, { ok: true, data: { locale: 'ko' } });
+  assert.deepEqual(res.body, { ok: true, data: { locale: 'en' } });
 });
 
-test('국가와 브라우저 언어를 알 수 없으면 영어를 반환한다', async () => {
-  const controller = createLocalizationController({
-    countryResolver: { resolve: async () => null },
-    getClientIp: () => '',
-  });
+test('소문자·공백 국가는 정규화하고 특수·잘못된 코드는 브라우저 언어로 대체한다', async () => {
+  for (const countryCode of ['kr', ' KR ']) {
+    const controller = createLocalizationController();
+    const res = createResponse();
+
+    await controller.show({
+      headers: {
+        'cf-ipcountry': countryCode,
+        'accept-language': 'en-US,en;q=0.9',
+      },
+    }, res);
+
+    assert.deepEqual(res.body, { ok: true, data: { locale: 'ko' } }, countryCode);
+  }
+});
+
+test('특수·잘못된 Cloudflare 국가는 브라우저 언어로 대체한다', async () => {
+  const invalidCountryCodes = ['XX', 'T1', 'USA', ''];
+
+  for (const countryCode of invalidCountryCodes) {
+    const controller = createLocalizationController();
+    const res = createResponse();
+
+    await controller.show({
+      headers: {
+        'cf-ipcountry': countryCode,
+        'accept-language': 'ko-KR,ko;q=0.9',
+      },
+    }, res);
+
+    assert.deepEqual(res.body, { ok: true, data: { locale: 'ko' } }, countryCode);
+  }
+});
+
+test('Cloudflare 국가와 브라우저 언어를 알 수 없으면 영어를 반환한다', async () => {
+  const controller = createLocalizationController();
   const res = createResponse();
 
   await controller.show({ headers: {} }, res);
