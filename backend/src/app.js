@@ -8,6 +8,7 @@ import repoRoutes from './routes/repo.routes.js';
 import etlRoutes from './routes/etl.routes.js';
 import statsRoutes from './routes/stats.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import localizationRoutes from './routes/localization.routes.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -19,6 +20,7 @@ app.use(cookieParser());
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+app.use('/api/localization', localizationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/queries', requireAuth, queryRoutes);
 app.use('/api/repos', requireAuth, repoRoutes);
