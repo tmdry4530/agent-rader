@@ -2,6 +2,7 @@
 // 규약(CLAUDE.md §4): 응답 { ok, data } 를 언랩해 data 만 반환. ok===false 면 throw → 호출부 Toast.
 // 기본값은 실제 백엔드(/api) 호출. VITE_USE_MOCK=true 면 인메모리 목으로 라우팅(백엔드 없이 데모용).
 import { mockFetch } from './mock';
+import i18n from '../i18n';
 
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
@@ -14,12 +15,32 @@ interface ApiEnvelope<T> {
   error?: { code: string; message: string };
 }
 
-/** API 에러 — message 는 Toast 로 그대로 노출 가능한 한국어/원문 메시지. */
+const ERROR_MESSAGE_KEYS: Record<string, string> = {
+  NETWORK_ERROR: 'errors.network',
+  UNAUTHORIZED: 'errors.unauthorized',
+  FORBIDDEN: 'errors.forbidden',
+  NOT_FOUND: 'errors.notFound',
+  VALIDATION_ERROR: 'errors.invalid',
+  ETL_DAILY_LIMIT_EXCEEDED: 'errors.rateLimit',
+  ETL_ALREADY_RUNNING: 'errors.collectionRunning',
+  GITHUB_TOKEN_INVALID: 'errors.githubExpired',
+  QUERY_LIMIT_EXCEEDED: 'errors.queryLimit',
+  DUPLICATE: 'errors.duplicate',
+};
+
+function errorMessage(code: string, status: number): string {
+  const key = ERROR_MESSAGE_KEYS[code]
+    ?? (status === 401 ? 'errors.unauthorized' : status === 403 ? 'errors.forbidden' : null)
+    ?? (status === 404 ? 'errors.notFound' : status === 400 ? 'errors.invalid' : 'errors.generic');
+  return i18n.t(key);
+}
+
+/** API 오류는 서버의 내부 문구 대신 현재 화면 언어의 안전한 안내 문구로 바꾼다. */
 export class ApiError extends Error {
   code: string;
   status: number;
-  constructor(message: string, code: string, status: number) {
-    super(message);
+  constructor(code: string, status: number) {
+    super(errorMessage(code, status));
     this.name = 'ApiError';
     this.code = code;
     this.status = status;
@@ -61,12 +82,7 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
     } catch {
-      // 네트워크 실패 = 백엔드 미기동일 가능성이 높다.
-      throw new ApiError(
-        '백엔드에 연결할 수 없습니다. localhost:4000 서버가 실행 중인지 확인하세요.',
-        'NETWORK_ERROR',
-        0,
-      );
+      throw new ApiError('NETWORK_ERROR', 0);
     }
 
     let payload: ApiEnvelope<T> | null = null;
@@ -78,8 +94,7 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
 
     if (!res.ok || !payload || payload.ok === false) {
       const code = payload?.error?.code ?? 'INTERNAL_ERROR';
-      const message = payload?.error?.message ?? `요청에 실패했습니다 (HTTP ${res.status}).`;
-      throw new ApiError(message, code, res.status);
+      throw new ApiError(code, res.status);
     }
 
     return payload.data as T;

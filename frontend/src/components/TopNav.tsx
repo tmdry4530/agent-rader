@@ -74,7 +74,9 @@ export default function TopNav() {
             </NavLink>
           </nav>
 
-          <LanguageSwitcher />
+          <div className={styles.language}>
+            <LanguageSwitcher />
+          </div>
 
           {USE_MOCK && (
             <div className={styles.status} title={t('nav.sampleDataMode')}>

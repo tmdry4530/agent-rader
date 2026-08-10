@@ -4,6 +4,7 @@ import { createQuery } from '../api/queries';
 import { useToast } from './Toast';
 import type { QueryType } from '../types';
 import styles from './QueryForm.module.css';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   onCreated: () => void;
@@ -11,6 +12,7 @@ interface Props {
 
 export default function QueryForm({ onCreated }: Props) {
   const toast = useToast();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [queryType, setQueryType] = useState<QueryType>('keyword');
   const [submitting, setSubmitting] = useState(false);
@@ -21,18 +23,18 @@ export default function QueryForm({ onCreated }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isValid) {
-      toast.error('조건은 1–200자 사이로 입력하세요.');
+      toast.error(t('queries.validation'));
       return;
     }
     setSubmitting(true);
     try {
       await createQuery({ query: trimmed, query_type: queryType });
-      toast.success(`'${trimmed}' 조건이 추가되었습니다.`);
+      toast.success(t('queries.added', { name: trimmed }));
       setQuery('');
       setQueryType('keyword');
       onCreated();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '조건 추가에 실패했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -42,29 +44,29 @@ export default function QueryForm({ onCreated }: Props) {
   return (
     <div className="panel">
       <div className="panel__head">
-        <span className="panel__title">+ 새 조건 추가</span>
+        <span className="panel__title">+ {t('queries.addTitle')}</span>
       </div>
       <form onSubmit={handleSubmit}>
         <div className={styles.formRow}>
           <input
             className={`input ${styles.queryInput}`}
             type="text"
-            placeholder="예: hermes agent"
+            placeholder={t('queries.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={submitting}
             maxLength={200}
-            aria-label="검색 조건"
+            aria-label={t('queries.inputLabel')}
           />
           <select
             className={`select ${styles.typeSelect}`}
             value={queryType}
             onChange={(e) => setQueryType(e.target.value as QueryType)}
             disabled={submitting}
-            aria-label="조건 타입"
+            aria-label={t('queries.typeLabel')}
           >
-            <option value="keyword">keyword</option>
-            <option value="topic">topic</option>
+            <option value="keyword">{t('queries.keyword')}</option>
+            <option value="topic">{t('queries.topic')}</option>
           </select>
           <button
             type="submit"
@@ -72,7 +74,7 @@ export default function QueryForm({ onCreated }: Props) {
             disabled={submitting || !isValid}
           >
             {submitting ? <span className="spinner" /> : null}
-            추가
+            {t('queries.add')}
           </button>
         </div>
       </form>

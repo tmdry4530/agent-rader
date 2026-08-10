@@ -12,11 +12,15 @@ import RepoRow from '../components/RepoRow';
 import Help from '../components/Help';
 import type { Repo, RepoQueryParams, RepoSort, RepoListResult } from '../types';
 import styles from './ReposPage.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 const LIMIT = 30;
 
 export default function ReposPage() {
   const toast = useToast();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
 
   // ── filter state ────────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
@@ -77,16 +81,16 @@ export default function ReposPage() {
     setDeleteBusy(true);
     try {
       await deleteRepo(deleteTarget.id);
-      toast.success(`'${deleteTarget.full_name}' 삭제 완료`);
+      toast.success(t('projects.deleted', { name: deleteTarget.full_name }));
       setDeleteTarget(null);
       reload();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '삭제 중 오류가 발생했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
     } finally {
       setDeleteBusy(false);
     }
-  }, [deleteTarget, toast, reload]);
+  }, [deleteTarget, toast, reload, t]);
 
   const handleDeleteCancel = useCallback(() => {
     if (!deleteBusy) setDeleteTarget(null);
@@ -110,7 +114,7 @@ export default function ReposPage() {
 
       try {
         await updateRepo(repo.id, { is_bookmarked: next });
-        toast.info(next ? '북마크 추가' : '북마크 해제');
+        toast.info(t(next ? 'projects.saved' : 'projects.unsaved'));
       } catch (err) {
         // revert on error
         setData((prev) => {
@@ -122,11 +126,11 @@ export default function ReposPage() {
             ),
           };
         });
-        const msg = err instanceof Error ? err.message : '북마크 업데이트 실패';
+        const msg = err instanceof Error ? err.message : t('errors.generic');
         toast.error(msg);
       }
     },
-    [setData, toast],
+    [setData, toast, t],
   );
 
   // ── open row ─────────────────────────────────────────────────────────────
@@ -145,17 +149,17 @@ export default function ReposPage() {
   // ── render ───────────────────────────────────────────────────────────────
   return (
     <div className="page">
-      <div className="page__title">REPOS</div>
+      <div className="page__title">{t('projects.title')}</div>
 
       {/* toolbar */}
       <div className={`panel ${styles.toolbar}`}>
         <input
           className={`input ${styles.searchInput}`}
           type="search"
-          placeholder="레포명 / 설명 검색…"
+          placeholder={t('projects.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="레포 검색"
+          aria-label={t('projects.searchLabel')}
         />
         <div className={styles.filterRow}>
           {/* query filter */}
@@ -163,9 +167,9 @@ export default function ReposPage() {
             className={`select ${styles.filterSelect}`}
             value={queryId ?? ''}
             onChange={(e) => setQueryId(e.target.value ? Number(e.target.value) : undefined)}
-            aria-label="조건 필터"
+            aria-label={t('projects.filterLabel')}
           >
-            <option value="">전체 조건</option>
+            <option value="">{t('projects.allFilters')}</option>
             {queriesData?.map((q) => (
               <option key={q.id} value={q.id}>
                 {q.query}
@@ -178,11 +182,11 @@ export default function ReposPage() {
             className={`select ${styles.filterSelect}`}
             value={sort}
             onChange={(e) => setSort(e.target.value as RepoSort)}
-            aria-label="정렬 기준"
+            aria-label={t('projects.sortLabel')}
           >
-            <option value="stars">스타순</option>
-            <option value="growth">성장률순</option>
-            <option value="recent">최근수집순</option>
+            <option value="stars">{t('projects.sortStars')}</option>
+            <option value="growth">{t('projects.sortGrowth')}</option>
+            <option value="recent">{t('projects.sortRecent')}</option>
           </select>
 
           {/* bookmark toggle */}
@@ -192,7 +196,7 @@ export default function ReposPage() {
             onClick={() => setBookmarked((b) => !b)}
             aria-pressed={bookmarked}
           >
-            ★ 북마크만
+            ★ {t('projects.savedOnly')}
           </button>
         </div>
       </div>
@@ -206,22 +210,22 @@ export default function ReposPage() {
           {data.items.length === 0 ? (
             filtersActive ? (
               <EmptyState
-                title="검색 결과가 없습니다"
-                hint="필터를 조정해 보세요"
+                title={t('projects.noResults')}
+                hint={t('projects.adjustFilters')}
               />
             ) : (
               <EmptyState
-                title="아직 수집된 레포가 없습니다"
+                title={t('projects.empty')}
                 hint={
                   <>
-                    Queries에서 관심 키워드를 등록하고 수집을 실행하면 여기에 급상승 레포가 쌓입니다.
+                    {t('projects.emptyHint')}
                     <br />
-                    1. 조건 추가 → 2. ‘실행(▶)’으로 수집 → 3. 이 화면에서 확인
+                    {t('projects.emptySteps')}
                   </>
                 }
                 action={
                   <Link className="btn btn--sm btn--primary" to="/queries">
-                    조건 관리로
+                    {t('projects.goToFilters')}
                   </Link>
                 }
               />
@@ -231,15 +235,15 @@ export default function ReposPage() {
               <table className="table table--rows table--center">
                 <thead>
                   <tr>
-                    <th aria-label="북마크" />
-                    <th>Repo / Description</th>
-                    <th>Lang</th>
-                    <th className="col-num">Stars</th>
+                    <th aria-label={t('projects.savedOnly')} />
+                    <th>{t('projects.columns.project')}</th>
+                    <th>{t('projects.columns.language')}</th>
+                    <th className="col-num">{t('projects.columns.stars')}</th>
                     <th className="col-num">
-                      Δ 성장{' '}
-                      <Help text="직전 수집 대비 스타 증가량·증가율. 지금 얼마나 빠르게 뜨는지를 나타냅니다." label="성장 설명" />
+                      {t('projects.columns.growth')}{' '}
+                      <Help text={t('projects.columns.growthHelp')} label={t('projects.columns.growthHelpLabel')} />
                     </th>
-                    <th aria-label="삭제" />
+                    <th aria-label={t('common.delete')} />
                   </tr>
                 </thead>
                 <tbody className="stagger">
@@ -261,10 +265,11 @@ export default function ReposPage() {
           {total > 0 && (
             <div className={`spread ${styles.pagination}`}>
               <span className="muted mono">
-                {formatInt(total)}건 &nbsp;
-                <span className="faint">
-                  ({rangeStart}–{rangeEnd})
-                </span>
+                {t('projects.count', {
+                  total: formatInt(total, locale),
+                  start: formatInt(rangeStart, locale),
+                  end: formatInt(rangeEnd, locale),
+                })}
               </span>
               <div className="row">
                 <button
@@ -273,7 +278,7 @@ export default function ReposPage() {
                   disabled={!hasPrev}
                   onClick={() => setOffset((o) => Math.max(0, o - LIMIT))}
                 >
-                  이전
+                  {t('common.previous')}
                 </button>
                 <button
                   type="button"
@@ -281,7 +286,7 @@ export default function ReposPage() {
                   disabled={!hasNext}
                   onClick={() => setOffset((o) => o + LIMIT)}
                 >
-                  다음
+                  {t('common.next')}
                 </button>
               </div>
             </div>
@@ -292,7 +297,7 @@ export default function ReposPage() {
       {/* delete confirm */}
       <ConfirmDialog
         open={deleteTarget !== null}
-        message={deleteTarget ? `'${deleteTarget.full_name}' 레포와 스냅샷을 삭제합니다.` : ''}
+        message={deleteTarget ? t('projects.deleteMessage', { name: deleteTarget.full_name }) : ''}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         busy={deleteBusy}

@@ -18,6 +18,8 @@ import type { TooltipProps } from 'recharts';
 import type { Snapshot } from '../types';
 import { formatStars, formatDateTime } from '../lib/format';
 import styles from './StarChart.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 interface Props {
   snapshots: Snapshot[];
@@ -27,25 +29,27 @@ interface Props {
 type CustomTooltipProps = TooltipProps<number, string>;
 
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
   if (!active || !payload?.length) return null;
   const snap = payload[0]?.payload as Snapshot;
   return (
     <div className={styles.tooltip}>
-      <div className={styles.tooltipDate}>{formatDateTime(snap.captured_at)}</div>
+      <div className={styles.tooltipDate}>{formatDateTime(snap.captured_at, locale)}</div>
       <div className={styles.tooltipRow}>
         <span className={styles.tooltipStar}>★</span>
-        <span className={styles.tooltipVal}>{formatStars(snap.stars)}</span>
+        <span className={styles.tooltipVal}>{formatStars(snap.stars, locale)}</span>
       </div>
       {snap.forks != null && (
         <div className={styles.tooltipRow}>
           <span className={styles.tooltipMuted}>⑂</span>
-          <span className={styles.tooltipMuted}>{snap.forks.toLocaleString('en-US')}</span>
+          <span className={styles.tooltipMuted}>{snap.forks.toLocaleString(locale)}</span>
         </div>
       )}
       {snap.open_issues != null && (
         <div className={styles.tooltipRow}>
           <span className={styles.tooltipMuted}>◔</span>
-          <span className={styles.tooltipMuted}>{snap.open_issues.toLocaleString('en-US')} issues</span>
+          <span className={styles.tooltipMuted}>{t('detail.chartIssues', { count: snap.open_issues.toLocaleString(locale) })}</span>
         </div>
       )}
     </div>
@@ -53,9 +57,11 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 export default function StarChart({ snapshots }: Props) {
+  const { i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={snapshots} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+      <LineChart data={snapshots} margin={{ top: 4, right: 20, left: 0, bottom: 0 }}>
         {/* stroke colors mirror tokens.css — recharts can't read CSS vars */}
         <CartesianGrid stroke="#232830" strokeDasharray="2 4" vertical={false} />
         <XAxis
@@ -71,7 +77,7 @@ export default function StarChart({ snapshots }: Props) {
           tickLine={{ stroke: '#232830' }}
         />
         <YAxis
-          tickFormatter={(v: number) => formatStars(v)}
+          tickFormatter={(v: number) => formatStars(v, locale)}
           tick={{ fill: '#8b93a1', fontSize: 11, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           width={48}
           axisLine={{ stroke: '#232830' }}

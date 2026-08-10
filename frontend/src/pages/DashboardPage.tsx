@@ -9,8 +9,12 @@ import RisingTable from '../components/RisingTable';
 import BookmarkTable from '../components/BookmarkTable';
 import LangMiniCard from '../components/LangMiniCard';
 import styles from './DashboardPage.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 export default function DashboardPage() {
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
   const stats = useAsync(() => getStats(), []);
   const trends = useAsync(() => getTrends(8), []);
   const rising = useAsync(() => getRising(8), []);
@@ -19,16 +23,16 @@ export default function DashboardPage() {
 
   return (
     <div className="page">
-      <div className="page__title">DASHBOARD</div>
+      <div className="page__title">{t('dashboard.title')}</div>
 
       {/* ── KPI 카드 5개 (언어 top3 포함) ─────────────────────────────── */}
       <div className="stagger grid-5" style={{ marginBottom: 'var(--gap)' }}>
         {stats.loading ? (
           <>
-            <StatCard label="Repos" value="—" hint="추적 레포" />
-            <StatCard label="Active Queries" value="—" hint="활성 조건" />
-            <StatCard label="Bookmarked" value="—" hint="북마크" />
-            <StatCard label="Last ETL" value="—" hint="마지막 수집" />
+            <StatCard label={t('dashboard.cards.projects')} value="—" hint={t('dashboard.cards.projectsHint')} />
+            <StatCard label={t('dashboard.cards.filters')} value="—" hint={t('dashboard.cards.filtersHint')} />
+            <StatCard label={t('dashboard.cards.saved')} value="—" hint={t('dashboard.cards.savedHint')} />
+            <StatCard label={t('dashboard.cards.lastCollection')} value="—" hint={t('dashboard.cards.lastCollectionHint')} />
             <LangMiniCard data={null} loading />
           </>
         ) : stats.error ? (
@@ -38,24 +42,26 @@ export default function DashboardPage() {
         ) : stats.data ? (
           <>
             <StatCard
-              label="Repos"
-              value={formatInt(stats.data.total_repos)}
-              hint="추적 레포"
+              label={t('dashboard.cards.projects')}
+              value={formatInt(stats.data.total_repos, locale)}
+              hint={t('dashboard.cards.projectsHint')}
             />
             <StatCard
-              label="Active Queries"
-              value={formatInt(stats.data.active_queries)}
-              hint="활성 조건"
+              label={t('dashboard.cards.filters')}
+              value={formatInt(stats.data.active_queries, locale)}
+              hint={t('dashboard.cards.filtersHint')}
             />
             <StatCard
-              label="Bookmarked"
-              value={formatInt(stats.data.bookmarked)}
-              hint="북마크"
+              label={t('dashboard.cards.saved')}
+              value={formatInt(stats.data.bookmarked, locale)}
+              hint={t('dashboard.cards.savedHint')}
             />
             <StatCard
-              label="Last ETL"
-              value={stats.data.last_etl_at ? `${formatCompactAge(stats.data.last_etl_at)} 전` : '—'}
-              hint={stats.data.last_etl_at ? '마지막 수집' : '아직 없음'}
+              label={t('dashboard.cards.lastCollection')}
+              value={stats.data.last_etl_at
+                ? t('dashboard.cards.ago', { value: formatCompactAge(stats.data.last_etl_at, locale) })
+                : '—'}
+              hint={stats.data.last_etl_at ? t('dashboard.cards.lastCollectionHint') : t('dashboard.cards.none')}
             />
             <LangMiniCard data={languages.data} loading={languages.loading} />
           </>
@@ -68,8 +74,8 @@ export default function DashboardPage() {
         <div className={styles.trendCol}>
           <div className={`panel panel--flush ${styles.fillPanel}`}>
             <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-              <span className="panel__title">신생 급상승</span>
-              <span className={styles.titleEn}>RISING · 30일 내 생성 · 500★+ · Δ24H</span>
+              <span className="panel__title">{t('dashboard.rising.title')}</span>
+              <span className={styles.titleEn}>{t('dashboard.rising.subtitle')}</span>
             </div>
             <div className={styles.panelBody}>
               {rising.loading ? (
@@ -92,8 +98,8 @@ export default function DashboardPage() {
         <div className={styles.langCol}>
           <div className={`panel panel--flush ${styles.fillPanel}`}>
             <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-              <span className="panel__title">성장률 상위</span>
-              <span className={styles.titleEn}>TOP MOVERS</span>
+              <span className="panel__title">{t('dashboard.movers.title')}</span>
+              <span className={styles.titleEn}>{t('dashboard.movers.subtitle')}</span>
             </div>
             <div className={styles.panelBody}>
               {trends.loading ? (
@@ -116,8 +122,8 @@ export default function DashboardPage() {
       {/* ── 관심 레포 — 전체폭 ─────────────────────────────────────────── */}
       <div className="panel panel--flush" style={{ marginTop: 'var(--gap)' }}>
         <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-          <span className="panel__title">관심 레포</span>
-          <span className={styles.titleEn}>BOOKMARKS</span>
+          <span className="panel__title">{t('dashboard.saved.title')}</span>
+          <span className={styles.titleEn}>{t('dashboard.saved.subtitle')}</span>
         </div>
         <div className={styles.panelBody}>
           {bookmarks.loading ? (

@@ -12,10 +12,24 @@
 }
 
 .typeSelect {
-  flex: 0 0 120px;
+  flex: 0 0 180px;
 }
 
 .submitBtn {
   flex-shrink: 0;
   align-self: stretch;
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    flex-wrap: wrap;
+  }
+
+  .queryInput {
+    flex-basis: 100%;
+  }
+
+  .typeSelect {
+    flex: 1 1 180px;
+  }
 }

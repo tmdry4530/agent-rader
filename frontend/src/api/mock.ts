@@ -141,7 +141,7 @@ export async function mockFetch<T>(
   if (path === '/rising' && m === 'GET') return risingRepos(query) as T;
   if (path === '/bookmarks' && m === 'GET') return bookmarks(query) as T;
 
-  throw new ApiError(`목 핸들러가 없습니다: ${method} ${path}`, 'NOT_FOUND', 404);
+  throw new ApiError('NOT_FOUND', 404);
 }
 
 // ── auth ────────────────────────────────────────────────────────────────────
@@ -161,10 +161,10 @@ function createQuery(body: unknown): WatchQuery {
   const text = (b.query ?? '').trim();
   const type: QueryType = b.query_type === 'topic' ? 'topic' : 'keyword';
   if (text.length < 1 || text.length > 200) {
-    throw new ApiError('query 는 1~200자여야 합니다.', 'VALIDATION_ERROR', 400);
+    throw new ApiError('VALIDATION_ERROR', 400);
   }
   if (queries.some((q) => q.query === text && q.query_type === type)) {
-    throw new ApiError('이미 존재하는 조건입니다.', 'DUPLICATE', 409);
+    throw new ApiError('DUPLICATE', 409);
   }
   const created: WatchQuery = {
     id: ++querySeq,
@@ -179,7 +179,7 @@ function createQuery(body: unknown): WatchQuery {
 }
 function updateQuery(id: number, body: unknown): WatchQuery {
   const idx = queries.findIndex((q) => q.id === id);
-  if (idx < 0) throw new ApiError('조건을 찾을 수 없습니다.', 'NOT_FOUND', 404);
+  if (idx < 0) throw new ApiError('NOT_FOUND', 404);
   const b = (body ?? {}) as Partial<Pick<WatchQuery, 'query' | 'query_type' | 'is_active'>>;
   const next = { ...queries[idx] };
   if (typeof b.query === 'string') next.query = b.query.trim();
@@ -190,7 +190,7 @@ function updateQuery(id: number, body: unknown): WatchQuery {
 }
 function deleteQuery(id: number): DeletedResult {
   if (!queries.some((q) => q.id === id)) {
-    throw new ApiError('조건을 찾을 수 없습니다.', 'NOT_FOUND', 404);
+    throw new ApiError('NOT_FOUND', 404);
   }
   queries = queries.filter((q) => q.id !== id);
   const removed = repos.filter((r) => r.query_id === id);
@@ -230,7 +230,7 @@ function listRepos(query?: Record<string, unknown>): RepoListResult {
 }
 function repoDetail(id: number): RepoDetailResult {
   const repo = repos.find((r) => r.id === id);
-  if (!repo) throw new ApiError('레포를 찾을 수 없습니다.', 'NOT_FOUND', 404);
+  if (!repo) throw new ApiError('NOT_FOUND', 404);
   return { repo: { ...repo }, snapshots: snapshotsOf(id) };
 }
 function snapshotsOf(id: number): Snapshot[] {
@@ -238,7 +238,7 @@ function snapshotsOf(id: number): Snapshot[] {
 }
 function updateRepo(id: number, body: unknown): Repo {
   const idx = repos.findIndex((r) => r.id === id);
-  if (idx < 0) throw new ApiError('레포를 찾을 수 없습니다.', 'NOT_FOUND', 404);
+  if (idx < 0) throw new ApiError('NOT_FOUND', 404);
   const b = (body ?? {}) as { note?: string; is_bookmarked?: boolean };
   const next = { ...repos[idx] };
   if (typeof b.note === 'string') next.note = b.note;
@@ -249,7 +249,7 @@ function updateRepo(id: number, body: unknown): Repo {
 }
 function deleteRepo(id: number): DeletedResult {
   if (!repos.some((r) => r.id === id)) {
-    throw new ApiError('레포를 찾을 수 없습니다.', 'NOT_FOUND', 404);
+    throw new ApiError('NOT_FOUND', 404);
   }
   repos = repos.filter((r) => r.id !== id);
   delete snapshots[id];
@@ -270,11 +270,7 @@ function nextKstMidnight(): string {
 
 function runEtl(query?: Record<string, unknown>): EtlRunResult {
   if (manualUsed >= MANUAL_LIMIT) {
-    throw new ApiError(
-      `오늘의 수동 수집 한도(${MANUAL_LIMIT}회)를 모두 사용했습니다. KST 자정에 초기화됩니다.`,
-      'ETL_DAILY_LIMIT_EXCEEDED',
-      429,
-    );
+    throw new ApiError('ETL_DAILY_LIMIT_EXCEEDED', 429);
   }
   manualUsed++;
   const queryId = query?.query_id != null && query.query_id !== '' ? Number(query.query_id) : undefined;

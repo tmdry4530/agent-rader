@@ -4,6 +4,8 @@ import type { RisingRepo } from '../types';
 import { formatStars, formatDelta, formatPercent, formatRelativeTime } from '../lib/format';
 import { LoadingState, ErrorState } from './States';
 import styles from './RisingTable.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 interface RisingTableProps {
   data: RisingRepo[] | null;
@@ -14,22 +16,24 @@ interface RisingTableProps {
 
 export default function RisingTable({ data, loading, error, onRetry }: RisingTableProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (!data || data.length === 0) {
-    return <div className={styles.empty}>최근 24시간 급상승 조건을 만족한 신생 레포가 없습니다</div>;
+    return <div className={styles.empty}>{t('dashboard.rising.empty')}</div>;
   }
 
   return (
-    <table className="table table--rows table--dense">
+    <table className={`table table--rows table--dense ${styles.table}`}>
       <thead>
         <tr>
-          <th>Repo</th>
-          <th>Lang</th>
-          <th className="col-num">Stars</th>
-          <th className="col-num">Δ 24h</th>
-          <th className="col-num">Age</th>
+          <th>{t('dashboard.table.project')}</th>
+          <th>{t('dashboard.table.language')}</th>
+          <th className="col-num">{t('dashboard.table.stars')}</th>
+          <th className="col-num">{t('dashboard.table.increase24h')}</th>
+          <th className="col-num">{t('dashboard.table.age')}</th>
         </tr>
       </thead>
       <tbody>
@@ -42,10 +46,13 @@ export default function RisingTable({ data, loading, error, onRetry }: RisingTab
             <tr
               key={repo.id}
               onClick={() => navigate(`/repos/${repo.id}`)}
-              title={`최근 24시간 ${formatDelta(repo.star_delta_24h)} · ${formatPercent(repo.growth_rate_24h)}`}
+              title={t('dashboard.rising.detail', {
+                delta: formatDelta(repo.star_delta_24h, locale),
+                rate: formatPercent(repo.growth_rate_24h, 1, locale),
+              })}
             >
               <td>
-                <div className={`${styles.repoCell} truncate`}>{repo.full_name}</div>
+                <div className={`${styles.repoCell} truncate`} title={repo.full_name}>{repo.full_name}</div>
               </td>
               <td>
                 {repo.language ? (
@@ -55,13 +62,13 @@ export default function RisingTable({ data, loading, error, onRetry }: RisingTab
                 )}
               </td>
               <td className="col-num">
-                <span className="stars">★ {formatStars(repo.stars)}</span>
+                <span className="stars">★ {formatStars(repo.stars, locale)}</span>
               </td>
               <td className="col-num">
-                <span className={deltaClass}>{formatDelta(repo.star_delta_24h)}</span>
+                <span className={deltaClass}>{formatDelta(repo.star_delta_24h, locale)}</span>
               </td>
               <td className="col-num">
-                <span className={styles.age}>{formatRelativeTime(repo.github_created_at)}</span>
+                <span className={styles.age}>{formatRelativeTime(repo.github_created_at, locale)}</span>
               </td>
             </tr>
           );

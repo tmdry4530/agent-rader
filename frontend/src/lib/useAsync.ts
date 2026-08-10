@@ -1,6 +1,7 @@
 // useAsync.ts — 데이터 패칭 3상태(loading/error/data)를 표준화하는 훅.
 // 모든 페이지가 동일한 방식으로 로딩/에러/빈 상태를 처리하도록 한다.
 import { useCallback, useEffect, useState } from 'react';
+import i18n from '../i18n';
 
 interface AsyncState<T> {
   data: T | null;
@@ -36,7 +37,7 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): UseAsyn
       },
       (err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+          const message = err instanceof Error ? err.message : i18n.t('errors.unknown');
           setState({ data: null, loading: false, error: message });
         }
       },

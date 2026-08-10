@@ -23,8 +23,9 @@
   min-width: 140px;
 }
 
-.tableWrap {
+.tableWrap.tableWrap {
   margin-bottom: var(--gap);
+  overflow-x: auto;
 }
 
 .pagination {

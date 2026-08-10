@@ -4,6 +4,8 @@ import type { BookmarkRepo } from '../types';
 import { formatStars, formatDelta } from '../lib/format';
 import { LoadingState, ErrorState } from './States';
 import styles from './BookmarkTable.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 interface BookmarkTableProps {
   data: BookmarkRepo[] | null;
@@ -14,21 +16,23 @@ interface BookmarkTableProps {
 
 export default function BookmarkTable({ data, loading, error, onRetry }: BookmarkTableProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (!data || data.length === 0) {
-    return <div className={styles.empty}>관심 레포를 북마크해 보세요</div>;
+    return <div className={styles.empty}>{t('dashboard.saved.empty')}</div>;
   }
 
   return (
     <table className="table table--rows table--dense">
       <thead>
         <tr>
-          <th>Repo</th>
-          <th>Lang</th>
-          <th className="col-num">Stars</th>
-          <th className="col-num">Δ 증가</th>
+          <th>{t('dashboard.table.project')}</th>
+          <th>{t('dashboard.table.language')}</th>
+          <th className="col-num">{t('dashboard.table.stars')}</th>
+          <th className="col-num">{t('dashboard.table.increase')}</th>
         </tr>
       </thead>
       <tbody>
@@ -50,10 +54,10 @@ export default function BookmarkTable({ data, loading, error, onRetry }: Bookmar
                 )}
               </td>
               <td className="col-num">
-                <span className="stars">★ {formatStars(repo.stars)}</span>
+                <span className="stars">★ {formatStars(repo.stars, locale)}</span>
               </td>
               <td className="col-num">
-                <span className={deltaClass}>{formatDelta(repo.star_delta)}</span>
+                <span className={deltaClass}>{formatDelta(repo.star_delta, locale)}</span>
               </td>
             </tr>
           );

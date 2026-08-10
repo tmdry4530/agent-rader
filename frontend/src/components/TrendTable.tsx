@@ -4,6 +4,8 @@ import type { TrendRepo } from '../types';
 import { formatStars, formatDelta, formatPercent } from '../lib/format';
 import { LoadingState, ErrorState, EmptyState } from './States';
 import styles from './TrendTable.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 interface TrendTableProps {
   data: TrendRepo[] | null;
@@ -16,17 +18,19 @@ interface TrendTableProps {
 
 export default function TrendTable({ data, loading, error, onRetry, compact = false }: TrendTableProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (!data || data.length === 0) {
     return (
       <EmptyState
-        title="수집된 레포가 없습니다"
-        hint="Queries에서 조건을 추가하고 ETL을 실행하세요"
+        title={t('dashboard.empty.title')}
+        hint={t('dashboard.empty.hint')}
         action={
           <Link className="btn btn--sm btn--primary" to="/queries">
-            조건 관리로
+            {t('dashboard.empty.action')}
           </Link>
         }
       />
@@ -37,11 +41,11 @@ export default function TrendTable({ data, loading, error, onRetry, compact = fa
     <table className="table table--rows table--dense">
       <thead>
         <tr>
-          <th>Repo</th>
-          {!compact && <th>Lang</th>}
-          <th className="col-num">Stars</th>
-          <th className="col-num">Δ</th>
-          <th className="col-num">증가율</th>
+          <th>{t('dashboard.table.project')}</th>
+          {!compact && <th>{t('dashboard.table.language')}</th>}
+          <th className="col-num">{t('dashboard.table.stars')}</th>
+          <th className="col-num">{t('dashboard.table.increase')}</th>
+          <th className="col-num">{t('dashboard.table.growth')}</th>
         </tr>
       </thead>
       <tbody>
@@ -68,13 +72,13 @@ export default function TrendTable({ data, loading, error, onRetry, compact = fa
                 </td>
               )}
               <td className="col-num">
-                <span className="stars">★ {formatStars(repo.stars)}</span>
+                <span className="stars">★ {formatStars(repo.stars, locale)}</span>
               </td>
               <td className="col-num">
-                <span className={deltaClass}>{formatDelta(repo.star_delta)}</span>
+                <span className={deltaClass}>{formatDelta(repo.star_delta, locale)}</span>
               </td>
               <td className="col-num">
-                <span className={styles.growthRate}>{formatPercent(repo.growth_rate)}</span>
+                <span className={styles.growthRate}>{formatPercent(repo.growth_rate, 1, locale)}</span>
               </td>
             </tr>
           );

@@ -11,6 +11,8 @@ import QueryForm from '../components/QueryForm';
 import Help from '../components/Help';
 import type { WatchQuery, QueryType, EtlStatus } from '../types';
 import styles from './QueriesPage.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +33,8 @@ interface DeleteState {
 
 export default function QueriesPage() {
   const toast = useToast();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
   const { data, loading, error, reload } = useAsync<WatchQuery[]>(
     () => listQueries(),
     [],
@@ -43,8 +47,8 @@ export default function QueriesPage() {
   const { data: etl, reload: reloadEtl } = useAsync<EtlStatus>(() => getEtlStatus(), []);
   const quotaExhausted = etl !== null && etl.manual_remaining === 0;
   const quotaTooltip = quotaExhausted
-    ? '오늘 수동 수집 한도를 모두 사용했습니다 · KST 자정에 초기화됩니다'
-    : 'KST 자정에 초기화됩니다';
+    ? t('queries.quotaExhausted')
+    : t('queries.quotaReset');
 
   // Per-row ETL running ids
   const [rowEtlId, setRowEtlId] = useState<number | null>(null);
@@ -58,18 +62,26 @@ export default function QueriesPage() {
   // Active toggle optimistic update set (ids being toggled)
   const [togglingIds, setTogglingIds] = useState<Set<number>>(new Set());
 
+  function collectionResultMessage(result: Awaited<ReturnType<typeof runEtl>>) {
+    const base = t('queries.completed', {
+      projects: formatInt(result.repos_upserted, locale),
+      records: formatInt(result.snapshots_inserted, locale),
+    });
+    return result.repos_skipped
+      ? `${base}${t('queries.completedSkipped', { count: formatInt(result.repos_skipped, locale) })}`
+      : base;
+  }
+
   // ── Global ETL ─────────────────────────────────────────────────────────────
 
   async function handleRunAllEtl() {
     setEtlRunning(true);
     try {
       const result = await runEtl();
-      toast.success(
-        `ETL 완료 · ${formatInt(result.repos_upserted)} repos · ${formatInt(result.snapshots_inserted)} snapshots${result.repos_skipped ? ` · ${formatInt(result.repos_skipped)} 제외` : ''}`,
-      );
+      toast.success(collectionResultMessage(result));
       reload();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'ETL 실행에 실패했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
     } finally {
       setEtlRunning(false);
@@ -83,12 +95,10 @@ export default function QueriesPage() {
     setRowEtlId(id);
     try {
       const result = await runEtl(id);
-      toast.success(
-        `ETL 완료 · ${formatInt(result.repos_upserted)} repos · ${formatInt(result.snapshots_inserted)} snapshots${result.repos_skipped ? ` · ${formatInt(result.repos_skipped)} 제외` : ''}`,
-      );
+      toast.success(collectionResultMessage(result));
       reload();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'ETL 실행에 실패했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
     } finally {
       setRowEtlId(null);
@@ -103,12 +113,10 @@ export default function QueriesPage() {
     setTogglingIds((prev) => new Set(prev).add(row.id));
     try {
       await updateQuery(row.id, { is_active: !row.is_active });
-      toast.success(
-        `'${row.query}' ${!row.is_active ? '활성화' : '비활성화'}됨.`,
-      );
+      toast.success(t(!row.is_active ? 'queries.enabled' : 'queries.disabled', { name: row.query }));
       reload();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '상태 변경에 실패했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
     } finally {
       setTogglingIds((prev) => {
@@ -133,17 +141,17 @@ export default function QueriesPage() {
     if (!editState) return;
     const trimmed = editState.query.trim();
     if (trimmed.length === 0 || trimmed.length > 200) {
-      toast.error('조건은 1–200자 사이로 입력하세요.');
+      toast.error(t('queries.validation'));
       return;
     }
     setEditState((s) => s ? { ...s, saving: true } : s);
     try {
       await updateQuery(editState.id, { query: trimmed, query_type: editState.queryType });
-      toast.success('조건이 수정되었습니다.');
+      toast.success(t('queries.updated'));
       setEditState(null);
       reload();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '수정에 실패했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
       setEditState((s) => s ? { ...s, saving: false } : s);
     }
@@ -164,11 +172,11 @@ export default function QueriesPage() {
     setDeleteState((s) => s ? { ...s, busy: true } : s);
     try {
       await deleteQuery(deleteState.id);
-      toast.success(`'${deleteState.query}' 조건이 삭제되었습니다.`);
+      toast.success(t('queries.deleted', { name: deleteState.query }));
       setDeleteState(null);
       reload();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '삭제에 실패했습니다.';
+      const msg = err instanceof Error ? err.message : t('errors.generic');
       toast.error(msg);
       setDeleteState((s) => s ? { ...s, busy: false } : s);
     }
@@ -189,7 +197,7 @@ export default function QueriesPage() {
             disabled={editState.saving}
             maxLength={200}
             autoFocus
-            aria-label="조건 수정"
+            aria-label={t('queries.editLabel')}
           />
           <select
             className={`select ${styles.editSelect}`}
@@ -200,10 +208,10 @@ export default function QueriesPage() {
               )
             }
             disabled={editState.saving}
-            aria-label="타입 수정"
+            aria-label={t('queries.typeEditLabel')}
           >
-            <option value="keyword">keyword</option>
-            <option value="topic">topic</option>
+            <option value="keyword">{t('queries.keyword')}</option>
+            <option value="topic">{t('queries.topic')}</option>
           </select>
         </div>
       );
@@ -218,7 +226,7 @@ export default function QueriesPage() {
     }
     return (
       <span className={`pill ${row.query_type === 'topic' ? 'pill--topic' : 'pill--keyword'}`}>
-        {row.query_type}
+        {t(row.query_type === 'topic' ? 'queries.topicShort' : 'queries.keywordShort')}
       </span>
     );
   }
@@ -232,7 +240,7 @@ export default function QueriesPage() {
         className={`${styles.statusToggle}${row.is_active ? ` ${styles.statusOn}` : ''}`}
         onClick={() => handleToggleActive(row)}
         disabled={isToggling}
-        title={row.is_active ? '클릭해 비활성화' : '클릭해 활성화'}
+        title={t(row.is_active ? 'queries.deactivate' : 'queries.activate')}
         aria-pressed={row.is_active}
       >
         {isToggling ? (
@@ -240,7 +248,7 @@ export default function QueriesPage() {
         ) : (
           <span className={row.is_active ? 'dot' : 'dot dot--off'} />
         )}
-        {row.is_active ? '활성' : '비활성'}
+        {t(row.is_active ? 'queries.active' : 'queries.inactive')}
       </button>
     );
   }
@@ -260,7 +268,7 @@ export default function QueriesPage() {
             disabled={isSaving}
           >
             {isSaving ? <span className="spinner" /> : null}
-            저장
+            {t('common.save')}
           </button>
           <button
             type="button"
@@ -268,7 +276,7 @@ export default function QueriesPage() {
             onClick={cancelEdit}
             disabled={isSaving}
           >
-            취소
+            {t('common.cancel')}
           </button>
         </div>
       );
@@ -283,7 +291,7 @@ export default function QueriesPage() {
           onClick={() => startEdit(row)}
           disabled={editState !== null || isRowEtlRunning}
         >
-          수정
+          {t('common.edit')}
         </button>
 
         {/* Per-row ETL */}
@@ -292,8 +300,8 @@ export default function QueriesPage() {
           className="btn btn--sm"
           onClick={() => handleRowEtl(row.id)}
           disabled={isRowEtlRunning || editState !== null || etlRunning || quotaExhausted}
-          title={quotaExhausted ? quotaTooltip : '이 조건만 ETL 실행'}
-          aria-label="ETL 실행"
+          title={quotaExhausted ? quotaTooltip : t('queries.runOne')}
+          aria-label={t('queries.runOneLabel')}
         >
           {isRowEtlRunning ? (
             <span className={styles.etlSpinner}>
@@ -311,7 +319,7 @@ export default function QueriesPage() {
           onClick={() => openDelete(row)}
           disabled={editState !== null || isRowEtlRunning}
         >
-          삭제
+          {t('common.delete')}
         </button>
       </div>
     );
@@ -323,18 +331,18 @@ export default function QueriesPage() {
     <div className="page">
       {/* Header */}
       <div className={styles.headerRow}>
-        <div className={`page__title ${styles.title}`}>QUERIES</div>
+        <div className={`page__title ${styles.title}`}>{t('queries.title')}</div>
         <div className={styles.etlControls}>
           <Help
-            text="지금 바로 수집을 실행해 최신 스타 수를 반영합니다. 활성 조건은 6시간마다 자동으로도 수집돼요. (수동 실행은 하루 한도가 있습니다)"
-            label="수집(ETL) 설명"
+            text={t('queries.collectionHelp')}
+            label={t('queries.collectionHelpLabel')}
           />
           {etl !== null && (
             <span
               className={quotaExhausted ? 'pill pill--accent' : 'pill'}
               title={quotaTooltip}
             >
-              오늘 {etl.manual_used_today}/{etl.manual_limit}회
+              {t('queries.quota', { used: etl.manual_used_today, limit: etl.manual_limit })}
             </span>
           )}
           <button
@@ -345,7 +353,7 @@ export default function QueriesPage() {
             title={quotaExhausted ? quotaTooltip : undefined}
           >
             {etlRunning ? <span className="spinner" /> : null}
-            전체 ETL 실행
+            {t('queries.runAll')}
           </button>
         </div>
       </div>
@@ -364,12 +372,12 @@ export default function QueriesPage() {
 
           {!loading && !error && data !== null && data.length === 0 && (
             <EmptyState
-              title="추적할 키워드를 등록해 보세요"
+              title={t('queries.emptyTitle')}
               hint={
                 <>
-                  관심 키워드를 등록하면 6시간마다 스타 증가율을 추적해 급상승 레포를 찾아줍니다.
+                  {t('queries.emptyHint')}
                   <br />
-                  1. 위에서 조건 추가 → 2. ‘실행(▶)’으로 즉시 수집 → 3. Repos·Dashboard에서 확인
+                  {t('queries.emptySteps')}
                 </>
               }
             />
@@ -380,15 +388,15 @@ export default function QueriesPage() {
               <table className="table table--rows table--center">
                 <thead>
                   <tr>
-                    <th>Query</th>
+                    <th>{t('queries.columns.query')}</th>
                     <th>
-                      Type{' '}
-                      <Help text="keyword: 이름·설명·README에서 단어 검색 · topic: GitHub 토픽 태그로 검색" label="Type 설명" />
+                      {t('queries.columns.type')}{' '}
+                      <Help text={t('queries.columns.typeHelp')} label={t('queries.columns.typeHelpLabel')} />
                     </th>
-                    <th>상태</th>
-                    <th>Repos</th>
-                    <th>등록일</th>
-                    <th>Actions</th>
+                    <th>{t('queries.columns.status')}</th>
+                    <th>{t('queries.columns.projects')}</th>
+                    <th>{t('queries.columns.created')}</th>
+                    <th>{t('queries.columns.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -400,11 +408,11 @@ export default function QueriesPage() {
                       <td>{renderTypeCell(row)}</td>
                       <td>{renderStatusCell(row)}</td>
                       <td>
-                        <span className="num">{formatInt(row.repo_count)}</span>
+                        <span className="num">{formatInt(row.repo_count, locale)}</span>
                       </td>
                       <td>
                         <span className="num muted">
-                          {formatDate(row.created_at)}
+                          {formatDate(row.created_at, locale)}
                         </span>
                       </td>
                       <td className={styles.actionsCell}>
@@ -422,13 +430,13 @@ export default function QueriesPage() {
       {/* Delete confirm dialog */}
       <ConfirmDialog
         open={deleteState !== null}
-        title="조건 삭제"
+        title={t('queries.deleteTitle')}
         message={
           deleteState
-            ? `'${deleteState.query}' 조건과 연관 레포·스냅샷이 모두 삭제됩니다.`
+            ? t('queries.deleteMessage', { name: deleteState.query })
             : ''
         }
-        confirmLabel="삭제"
+        confirmLabel={t('common.delete')}
         danger
         busy={deleteState?.busy ?? false}
         onConfirm={confirmDelete}

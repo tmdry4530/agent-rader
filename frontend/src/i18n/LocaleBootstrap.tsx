@@ -31,6 +31,7 @@ export function detectBrowserLocale(): SupportedLocale {
 export async function applyLocale(locale: SupportedLocale, persist = false): Promise<void> {
   await i18n.changeLanguage(locale);
   document.documentElement.lang = locale;
+  document.title = i18n.t('common.documentTitle');
   if (!persist) return;
   try {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);

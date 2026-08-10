@@ -1,9 +1,33 @@
 /* RisingTable.module.css */
 
+.table.table th {
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.table.table th:nth-child(2) {
+  width: 78px;
+}
+
+.table.table th:nth-child(3) {
+  width: 70px;
+}
+
+.table.table th:nth-child(4) {
+  width: 94px;
+}
+
+.table.table th:nth-child(5) {
+  width: 88px;
+}
+
 .repoCell {
   font-family: var(--mono);
   font-weight: 600;
   font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .age {

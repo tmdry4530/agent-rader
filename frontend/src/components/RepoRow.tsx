@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { Repo } from '../types';
 import { formatStars, formatDelta, formatPercent } from '../lib/format';
 import styles from './RepoRow.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 interface Props {
   repo: Repo;
@@ -13,6 +15,8 @@ interface Props {
 
 export default function RepoRow({ repo, onOpen, onToggleBookmark, onDelete }: Props) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
 
   const handleRowClick = () => {
     onOpen(repo.id);
@@ -44,8 +48,8 @@ export default function RepoRow({ repo, onOpen, onToggleBookmark, onDelete }: Pr
           type="button"
           className="btn btn--icon btn--ghost"
           onClick={handleBookmark}
-          aria-label={repo.is_bookmarked ? '북마크 해제' : '북마크'}
-          title={repo.is_bookmarked ? '북마크 해제' : '북마크'}
+          aria-label={t(repo.is_bookmarked ? 'projects.unsave' : 'projects.save')}
+          title={t(repo.is_bookmarked ? 'projects.unsave' : 'projects.save')}
         >
           {repo.is_bookmarked ? (
             <span className={styles.starOn} aria-hidden>★</span>
@@ -74,13 +78,13 @@ export default function RepoRow({ repo, onOpen, onToggleBookmark, onDelete }: Pr
 
       {/* stars */}
       <td className="col-num">
-        <span className="stars">★ {formatStars(repo.stars)}</span>
+        <span className="stars">★ {formatStars(repo.stars, locale)}</span>
       </td>
 
       {/* growth / delta */}
       <td className="col-num">
-        <span className={growthClass}>{formatPercent(repo.growth_rate)}</span>
-        <div className={`muted ${styles.deltaSmall}`}>{formatDelta(repo.star_delta)}</div>
+        <span className={growthClass}>{formatPercent(repo.growth_rate, 1, locale)}</span>
+        <div className={`muted ${styles.deltaSmall}`}>{formatDelta(repo.star_delta, locale)}</div>
       </td>
 
       {/* delete */}
@@ -89,9 +93,9 @@ export default function RepoRow({ repo, onOpen, onToggleBookmark, onDelete }: Pr
           type="button"
           className="btn btn--danger btn--sm"
           onClick={handleDelete}
-          aria-label={`${repo.full_name} 삭제`}
+          aria-label={t('projects.deleteLabel', { name: repo.full_name })}
         >
-          삭제
+          {t('common.delete')}
         </button>
       </td>
     </tr>

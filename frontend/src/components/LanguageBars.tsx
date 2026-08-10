@@ -2,6 +2,7 @@
 import type { LanguageStat } from '../types';
 import { LoadingState, ErrorState, EmptyState } from './States';
 import styles from './LanguageBars.module.css';
+import { useTranslation } from 'react-i18next';
 
 interface LanguageBarsProps {
   data: LanguageStat[] | null;
@@ -11,10 +12,11 @@ interface LanguageBarsProps {
 }
 
 export default function LanguageBars({ data, loading, error, onRetry }: LanguageBarsProps) {
+  const { t } = useTranslation();
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={onRetry} />;
   if (!data || data.length === 0) {
-    return <EmptyState title="언어 데이터 없음" />;
+    return <EmptyState title={t('dashboard.language.empty')} />;
   }
 
   // 하위 항목(1~2개짜리)이 길게 나열되지 않게 상위 7개 + '기타'로 집계
@@ -24,7 +26,7 @@ export default function LanguageBars({ data, loading, error, onRetry }: Language
       ? [
           ...data.slice(0, TOP),
           {
-            language: `기타 (${data.length - TOP}종)`,
+            language: t('dashboard.language.other', { count: data.length - TOP }),
             count: data.slice(TOP).reduce((sum, d) => sum + d.count, 0),
           },
         ]
@@ -34,7 +36,7 @@ export default function LanguageBars({ data, loading, error, onRetry }: Language
   return (
     <div className={styles.list}>
       {items.map((item, idx) => {
-        const label = item.language ?? 'Unknown';
+        const label = item.language ?? t('dashboard.language.unknown');
         const widthPct = (item.count / maxCount) * 100;
         return (
           <div key={`${label}-${idx}`} className={styles.row}>

@@ -76,3 +76,15 @@
   align-items: center;
   gap: 6px;
 }
+
+@media (max-width: 640px) {
+  .headerRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .etlControls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}

@@ -34,7 +34,7 @@ export default function LoginPage() {
   const sampleStats = [
     { label: t('login.sampleStats.projects'), value: '128', hint: t('login.sampleStats.tracked') },
     { label: t('login.sampleStats.filters'), value: '4', hint: t('login.sampleStats.active') },
-    { label: t('login.sampleStats.lastCollection'), value: '2 hr', hint: t('login.sampleStats.ago') },
+    { label: t('login.sampleStats.lastCollection'), value: t('login.sampleStats.lastValue'), hint: t('login.sampleStats.ago') },
   ];
   const steps = [
     { n: '1', title: t('login.steps.oneTitle'), desc: t('login.steps.oneDesc') },

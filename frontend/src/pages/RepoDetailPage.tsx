@@ -17,12 +17,16 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import StarChart from '../components/StarChart';
 import type { WatchQuery } from '../types';
 import styles from './RepoDetailPage.module.css';
+import { useTranslation } from 'react-i18next';
+import { toSupportedLocale } from '../i18n';
 
 export default function RepoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const repoId = Number(id);
   const nav = useNavigate();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
+  const locale = toSupportedLocale(i18n.resolvedLanguage) ?? 'en';
 
   // 레포 데이터 패칭
   const { data, loading, error, reload, setData } = useAsync(
@@ -72,7 +76,7 @@ export default function RepoDetailPage() {
         <ErrorState message={error} onRetry={reload} />
         <div style={{ marginTop: 'var(--gap)' }}>
           <Link to="/repos" className="btn btn--sm btn--ghost">
-            ← 목록
+            ← {t('detail.back')}
           </Link>
         </div>
       </div>
@@ -89,7 +93,7 @@ export default function RepoDetailPage() {
   // 연결된 쿼리 이름
   const matchedQuery = queries.find((q) => q.id === repo.query_id);
   const queryLabel = matchedQuery
-    ? `${matchedQuery.query} (${matchedQuery.query_type})`
+    ? `${matchedQuery.query} (${t(matchedQuery.query_type === 'topic' ? 'queries.topicShort' : 'queries.keywordShort')})`
     : null;
 
   // ── 메모 저장 ────────────────────────────────────────────────────────────
@@ -103,9 +107,9 @@ export default function RepoDetailPage() {
           : { repo: updated, snapshots: [] },
       );
       setNoteDirty(false);
-      toast.success('메모를 저장했습니다');
+      toast.success(t('detail.noteSaved'));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '메모 저장에 실패했습니다.';
+      const msg = e instanceof Error ? e.message : t('errors.generic');
       toast.error(msg);
     } finally {
       setSavingNote(false);
@@ -122,9 +126,9 @@ export default function RepoDetailPage() {
           ? { ...prev, repo: { ...prev.repo, is_bookmarked: updated.is_bookmarked } }
           : { repo: updated, snapshots: [] },
       );
-      toast.success(next ? '북마크에 추가했습니다' : '북마크를 해제했습니다');
+      toast.success(t(next ? 'detail.savedToast' : 'detail.unsavedToast'));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '북마크 변경에 실패했습니다.';
+      const msg = e instanceof Error ? e.message : t('errors.generic');
       toast.error(msg);
     }
   }
@@ -134,10 +138,10 @@ export default function RepoDetailPage() {
     setDeleteBusy(true);
     try {
       await deleteRepo(repoId);
-      toast.success(`'${repo.full_name}' 레포를 삭제했습니다`);
+      toast.success(t('detail.deleted', { name: repo.full_name }));
       nav('/repos');
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '삭제에 실패했습니다.';
+      const msg = e instanceof Error ? e.message : t('errors.generic');
       toast.error(msg);
       setDeleteBusy(false);
       setDeleteOpen(false);
@@ -153,11 +157,11 @@ export default function RepoDetailPage() {
       {/* ── 상단 바 ───────────────────────────────────────────────────── */}
       <div className={`spread ${styles.topBar}`}>
         <button className="btn btn--sm" onClick={() => nav('/repos')}>
-          ← 목록
+          ← {t('detail.back')}
         </button>
         {queryLabel && (
           <span className={`mono muted ${styles.contextLine}`}>
-            query: {queryLabel}
+            {t('detail.filterContext', { name: queryLabel })}
           </span>
         )}
       </div>
@@ -181,21 +185,21 @@ export default function RepoDetailPage() {
             {repo.description ? (
               <p className={`muted ${styles.description}`}>{repo.description}</p>
             ) : (
-              <p className={`faint ${styles.description}`}>설명 없음</p>
+              <p className={`faint ${styles.description}`}>{t('detail.noDescription')}</p>
             )}
 
             <div className={`row wrap ${styles.pills}`}>
               <span className="pill">{repo.language ?? '—'}</span>
-              <span className="pill">★ {formatStars(repo.stars)}</span>
+              <span className="pill">★ {formatStars(repo.stars, locale)}</span>
               {latest && (
                 <>
-                  <span className="pill">⑂ {formatInt(latest.forks)}</span>
-                  <span className="pill">◔ {formatInt(latest.open_issues)} issues</span>
+                  <span className="pill">⑂ {formatInt(latest.forks, locale)}</span>
+                  <span className="pill">◔ {t('detail.issues', { count: formatInt(latest.open_issues, locale) })}</span>
                 </>
               )}
               {repo.growth_rate !== 0 && (
                 <span className={growthClass}>
-                  {formatPercent(repo.growth_rate)}
+                  {formatPercent(repo.growth_rate, 1, locale)}
                 </span>
               )}
               {repo.star_delta !== 0 && (
@@ -204,7 +208,7 @@ export default function RepoDetailPage() {
                     repo.star_delta > 0 ? styles.deltaUp : styles.deltaDown
                   }`}
                 >
-                  Δ {formatStars(Math.abs(repo.star_delta))}
+                  {t('dashboard.table.increase')} {formatStars(Math.abs(repo.star_delta), locale)}
                 </span>
               )}
             </div>
@@ -212,7 +216,7 @@ export default function RepoDetailPage() {
             {repo.first_seen_at && (
               <div className={`muted ${styles.metaLine}`}>
                 <span className="mono faint" style={{ fontSize: 11 }}>
-                  최초 감지: {formatRelativeTime(repo.first_seen_at)}
+                  {t('detail.firstSeen', { time: formatRelativeTime(repo.first_seen_at, locale) })}
                 </span>
               </div>
             )}
@@ -221,18 +225,18 @@ export default function RepoDetailPage() {
           {/* 스타 추이 패널 */}
           <div className="panel">
             <div className="panel__head">
-              <span className="panel__title">★ 스타 추이</span>
+              <span className="panel__title">{t('detail.historyTitle')}</span>
               {snapshots.length > 0 && (
                 <span className="muted" style={{ fontSize: 11, fontFamily: 'var(--mono)' }}>
-                  {snapshots.length}개 스냅샷
+                  {t('detail.records', { count: formatInt(snapshots.length, locale) })}
                 </span>
               )}
             </div>
             {snapshots.length <= 1 ? (
               <EmptyState
                 icon="◌"
-                title="데이터 수집 중"
-                hint="스냅샷이 더 쌓이면 추이가 표시됩니다"
+                title={t('detail.collectingTitle')}
+                hint={t('detail.collectingHint')}
               />
             ) : (
               <StarChart snapshots={snapshots} />
@@ -246,17 +250,17 @@ export default function RepoDetailPage() {
           <div className="panel">
             <div className="panel__head">
               <label className="label" htmlFor="repo-note">
-                메모
+                {t('detail.note')}
               </label>
               {noteDirty && (
-                <span className={`mono ${styles.dirtyBadge}`}>미저장</span>
+                <span className={`mono ${styles.dirtyBadge}`}>{t('detail.unsaved')}</span>
               )}
             </div>
             <textarea
               id="repo-note"
               className="textarea"
               value={note}
-              placeholder="레포에 대한 메모를 남겨보세요…"
+              placeholder={t('detail.notePlaceholder')}
               disabled={savingNote}
               onChange={(e) => {
                 setNote(e.target.value);
@@ -269,7 +273,7 @@ export default function RepoDetailPage() {
                 onClick={handleSaveNote}
                 disabled={savingNote || !noteDirty}
               >
-                {savingNote ? '저장 중…' : '저장'}
+                {savingNote ? t('detail.saving') : t('common.save')}
               </button>
             </div>
           </div>
@@ -277,20 +281,20 @@ export default function RepoDetailPage() {
           {/* 액션 패널 */}
           <div className="panel">
             <div className="panel__head">
-              <span className="panel__title">액션</span>
+              <span className="panel__title">{t('detail.actions')}</span>
             </div>
             <div className={`stack ${styles.actions}`}>
               <button
                 className={`btn ${repo.is_bookmarked ? 'btn--active' : ''}`}
                 onClick={handleBookmark}
               >
-                {repo.is_bookmarked ? '★ 북마크됨' : '☆ 북마크'}
+                {t(repo.is_bookmarked ? 'detail.saved' : 'detail.save')}
               </button>
               <button
                 className="btn btn--danger"
                 onClick={() => setDeleteOpen(true)}
               >
-                레포 삭제
+                {t('detail.delete')}
               </button>
             </div>
           </div>
@@ -300,9 +304,9 @@ export default function RepoDetailPage() {
       {/* 삭제 확인 다이얼로그 */}
       <ConfirmDialog
         open={deleteOpen}
-        message={`'${repo.full_name}' 레포와 스냅샷을 삭제합니다.`}
-        title="레포 삭제"
-        confirmLabel="삭제"
+        message={t('detail.deleteMessage', { name: repo.full_name })}
+        title={t('detail.delete')}
+        confirmLabel={t('common.delete')}
         busy={deleteBusy}
         onConfirm={handleDelete}
         onCancel={() => setDeleteOpen(false)}

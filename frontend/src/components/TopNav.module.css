@@ -71,6 +71,10 @@
 }
 .statusText { padding-top: 1px; }
 
+.language {
+  display: flex;
+}
+
 .userMenu {
   position: relative;
   margin-left: 14px;
@@ -153,6 +157,35 @@
 
 @media (max-width: 640px) {
   .tagline { display: none; }
-  .inner { gap: 12px; padding: 0 14px; }
+  .inner {
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 8px 14px;
+  }
+  .brand {
+    order: 1;
+    margin-right: auto;
+  }
+  .language { order: 2; }
+  .userMenu {
+    order: 3;
+    margin-left: 0;
+  }
+  .links {
+    order: 4;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+  .link {
+    padding: 7px 5px;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: center;
+  }
+  .status { display: none; }
   .userName { display: none; }
 }

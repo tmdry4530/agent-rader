@@ -10,7 +10,7 @@ interface TipPos {
   placement: 'top' | 'bottom';
 }
 
-export default function Help({ text, label = '도움말' }: { text: string; label?: string }) {
+export default function Help({ text, label }: { text: string; label: string }) {
   const ref = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<TipPos | null>(null);
 
