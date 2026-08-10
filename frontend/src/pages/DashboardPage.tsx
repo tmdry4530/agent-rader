@@ -26,7 +26,7 @@ export default function DashboardPage() {
       <div className="page__title">{t('dashboard.title')}</div>
 
       {/* ── KPI 카드 5개 (언어 top3 포함) ─────────────────────────────── */}
-      <div className="stagger grid-5" style={{ marginBottom: 'var(--gap)' }}>
+      <div className={`stagger grid-5 ${styles.statsGrid}`} style={{ marginBottom: 'var(--gap)' }}>
         {stats.loading ? (
           <>
             <StatCard label={t('dashboard.cards.projects')} value="—" hint={t('dashboard.cards.projectsHint')} />
@@ -36,7 +36,7 @@ export default function DashboardPage() {
             <LangMiniCard data={null} loading />
           </>
         ) : stats.error ? (
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div className={styles.statsError}>
             <ErrorState message={stats.error} onRetry={stats.reload} />
           </div>
         ) : stats.data ? (
@@ -73,8 +73,8 @@ export default function DashboardPage() {
         {/* 신생 급상승 — 메인 */}
         <div className={styles.trendCol}>
           <div className={`panel panel--flush ${styles.fillPanel}`}>
-            <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-              <span className="panel__title">{t('dashboard.rising.title')}</span>
+            <div className={`panel__head ${styles.sectionHead}`}>
+              <span className={`panel__title ${styles.sectionTitle}`}>{t('dashboard.rising.title')}</span>
               <span className={styles.titleEn}>{t('dashboard.rising.subtitle')}</span>
             </div>
             <div className={styles.panelBody}>
@@ -97,8 +97,8 @@ export default function DashboardPage() {
         {/* 성장률 상위 — 보조 */}
         <div className={styles.langCol}>
           <div className={`panel panel--flush ${styles.fillPanel}`}>
-            <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-              <span className="panel__title">{t('dashboard.movers.title')}</span>
+            <div className={`panel__head ${styles.sectionHead}`}>
+              <span className={`panel__title ${styles.sectionTitle}`}>{t('dashboard.movers.title')}</span>
               <span className={styles.titleEn}>{t('dashboard.movers.subtitle')}</span>
             </div>
             <div className={styles.panelBody}>
@@ -121,8 +121,8 @@ export default function DashboardPage() {
 
       {/* ── 관심 레포 — 전체폭 ─────────────────────────────────────────── */}
       <div className="panel panel--flush" style={{ marginTop: 'var(--gap)' }}>
-        <div className="panel__head" style={{ padding: 'var(--pad) var(--pad) 0' }}>
-          <span className="panel__title">{t('dashboard.saved.title')}</span>
+        <div className={`panel__head ${styles.sectionHead}`}>
+          <span className={`panel__title ${styles.sectionTitle}`}>{t('dashboard.saved.title')}</span>
           <span className={styles.titleEn}>{t('dashboard.saved.subtitle')}</span>
         </div>
         <div className={styles.panelBody}>

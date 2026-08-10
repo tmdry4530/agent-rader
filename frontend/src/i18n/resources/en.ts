@@ -142,7 +142,7 @@ export const en = {
     },
     rising: {
       title: 'New and rising',
-      subtitle: 'Published in the last 30 days · 500+ stars · growth in the last 24 hours',
+      subtitle: '30 days · 500+ stars · 24-hour growth',
       empty: 'No new projects matched the fast-growth rules in the last 24 hours',
       detail: 'Last 24 hours {{delta}} · {{rate}} growth',
     },
@@ -160,9 +160,9 @@ export const en = {
       language: 'Language',
       stars: 'Stars',
       increase: 'Increase',
-      increase24h: '24-hour increase',
+      increase24h: '24-hour gain',
       growth: 'Growth',
-      age: 'Published',
+      age: 'Created',
     },
     empty: {
       title: 'No collected projects yet',

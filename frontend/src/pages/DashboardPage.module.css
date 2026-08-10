@@ -9,6 +9,14 @@
   align-items: stretch;
 }
 
+.statsGrid > *:not(.statsError) {
+  height: 123px;
+}
+
+.statsError {
+  grid-column: 1 / -1;
+}
+
 /* 두 패널 50:50 동일 폭 — 좁은 화면(~760px 미만)에선 세로 스택 */
 .trendCol,
 .langCol {
@@ -29,11 +37,41 @@
   overflow-x: auto; /* 폭이 모자라면 잘라내지 않고 가로 스크롤 */
 }
 
-/* 패널 제목 옆 영문 서브라벨 — 한글 제목 + 영문 배지 규칙 */
+/* 번역 길이가 바뀌어도 모든 패널의 표 시작 위치를 같은 높이에 고정한다. */
+.sectionHead {
+  box-sizing: border-box;
+  height: 47px;
+  margin-bottom: 0;
+  padding: var(--pad) var(--pad) 14px;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .titleEn {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 1.2px;
   color: var(--faint);
-  margin-left: 8px;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .statsGrid > *:not(.statsError) {
+    height: 138px;
+  }
+}
+
+@media (max-width: 400px) {
+  .statsGrid > *:not(.statsError) {
+    height: 168px;
+  }
 }

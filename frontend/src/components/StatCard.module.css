@@ -32,6 +32,7 @@
 .label {
   font-family: var(--mono);
   font-size: 10.5px;
+  line-height: 14px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--muted);
@@ -49,6 +50,7 @@
 .hint {
   font-family: var(--mono);
   font-size: 11px;
+  line-height: 15px;
   color: var(--faint);
   margin-top: 2px;
 }
