@@ -11,6 +11,7 @@ export const ko = {
     close: '닫기',
     help: '도움말',
     unknown: '알 수 없음',
+    requestFailed: '요청을 처리하지 못했습니다',
   },
   language: {
     label: '화면 언어',
@@ -20,6 +21,8 @@ export const ko = {
   },
   auth: {
     checking: '로그인 상태를 확인하는 중…',
+    githubExpired: 'GitHub 연결이 만료되었습니다. 수집을 계속하려면 다시 로그인해 주세요.',
+    signInAgain: '다시 로그인',
   },
 } as const;
 

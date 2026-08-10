@@ -1,12 +1,14 @@
 // States.tsx — 로딩 / 빈 / 에러 3종 공통 상태 컴포넌트. 모든 페이지가 동일 톤으로 사용.
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './States.module.css';
 
-export function LoadingState({ label = '데이터 불러오는 중…' }: { label?: string }) {
+export function LoadingState({ label }: { label?: string }) {
+  const { t } = useTranslation();
   return (
     <div className={styles.state}>
       <span className="spinner" />
-      <span className={styles.dim}>{label}</span>
+      <span className={styles.dim}>{label ?? t('common.loadingData')}</span>
     </div>
   );
 }
@@ -35,16 +37,17 @@ export function EmptyState({
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className={`${styles.state} ${styles.errorWrap}`}>
       <div className={`${styles.icon} ${styles.errorIcon}`} aria-hidden>
         ⚠
       </div>
-      <div className={styles.title}>요청을 처리하지 못했습니다</div>
+      <div className={styles.title}>{t('common.requestFailed')}</div>
       <div className={styles.dim}>{message}</div>
       {onRetry && (
         <button type="button" className="btn btn--sm" onClick={onRetry}>
-          다시 시도
+          {t('common.retry')}
         </button>
       )}
     </div>

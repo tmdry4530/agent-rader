@@ -14,6 +14,7 @@ export const en = {
     close: 'Close',
     help: 'Help',
     unknown: 'Unknown',
+    requestFailed: 'We could not complete that request',
   },
   language: {
     label: 'Display language',
@@ -23,5 +24,7 @@ export const en = {
   },
   auth: {
     checking: 'Checking your sign-in status…',
+    githubExpired: 'Your GitHub connection has expired. Sign in again to keep collecting projects.',
+    signInAgain: 'Sign in again',
   },
 } as const satisfies TranslationShape<typeof ko>;

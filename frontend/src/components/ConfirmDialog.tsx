@@ -1,6 +1,7 @@
 // ConfirmDialog.tsx — 파괴적 액션(삭제 등) 확인용 공통 모달. 다크 테마 일관 UX.
 // 각 페이지가 자체 open 상태를 관리하고 이 컴포넌트를 렌더한다.
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './ConfirmDialog.module.css';
 
 interface Props {
@@ -18,14 +19,18 @@ interface Props {
 export default function ConfirmDialog({
   open,
   message,
-  title = '확인',
-  confirmLabel = '삭제',
-  cancelLabel = '취소',
+  title,
+  confirmLabel,
+  cancelLabel,
   danger = true,
   busy = false,
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t('common.confirm');
+  const resolvedConfirmLabel = confirmLabel ?? t('common.delete');
+  const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -45,13 +50,13 @@ export default function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
         role="alertdialog"
         aria-modal="true"
-        aria-label={title}
+        aria-label={resolvedTitle}
       >
-        <div className={styles.title}>{title}</div>
+        <div className={styles.title}>{resolvedTitle}</div>
         <div className={styles.message}>{message}</div>
         <div className={styles.actions}>
           <button type="button" className="btn btn--sm" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             type="button"
@@ -59,7 +64,7 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             disabled={busy}
           >
-            {busy ? '처리 중…' : confirmLabel}
+            {busy ? t('common.processing') : resolvedConfirmLabel}
           </button>
         </div>
       </div>
