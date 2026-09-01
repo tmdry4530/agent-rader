@@ -77,16 +77,21 @@ export async function stats(userId) {
   };
 }
 
-// 성장률 상위 — 정체 레포(star_delta<=0)는 제외 (trend-ranking-v2 R3.1).
+// 성장률 상위 — 1,000스타 미만과 정체 레포는 제외한 뒤 증가율로 정렬한다.
+export function buildTrendsQuery(userId, limit = 10) {
+  return {
+    sql: 'SELECT id, full_name, stars, star_delta, growth_rate, language FROM repos WHERE user_id = ? AND stars >= 1000 AND star_delta > 0 ORDER BY growth_rate DESC, star_delta DESC LIMIT ?',
+    params: [userId, Number(limit)],
+  };
+}
+
 export async function trends(userId, limit = 10) {
-  const [rows] = await pool.query(
-    'SELECT id, full_name, stars, star_delta, growth_rate, language FROM repos WHERE user_id = ? AND star_delta > 0 ORDER BY growth_rate DESC, star_delta DESC LIMIT ?',
-    [userId, Number(limit)]
-  );
+  const { sql, params } = buildTrendsQuery(userId, limit);
+  const [rows] = await pool.query(sql, params);
   return rows.map((r) => ({ ...r, stars: Number(r.stars), star_delta: Number(r.star_delta), growth_rate: Number(r.growth_rate) }));
 }
 
-export function buildRisingQuery(userId, { windowDays, minStars, limit }) {
+export function buildRisingQuery(userId, { windowDays, minDelta, limit }) {
   return {
     sql: `SELECT r.id, r.full_name, r.language, r.stars, r.star_delta, r.github_created_at,
                  r.stars / GREATEST(DATEDIFF(NOW(), r.github_created_at), 1) AS velocity,
@@ -102,18 +107,17 @@ export function buildRisingQuery(userId, { windowDays, minStars, limit }) {
             LIMIT 1
           )
           WHERE r.user_id = ?
-            AND r.stars >= ?
             AND r.github_created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-            AND r.stars > baseline.stars
+            AND r.stars - baseline.stars >= ?
           ORDER BY star_delta_24h DESC, growth_rate_24h DESC
           LIMIT ?`,
-    params: [Number(userId), Number(minStars), Number(windowDays), Number(limit)],
+    params: [Number(userId), Number(windowDays), Number(minDelta), Number(limit)],
   };
 }
 
 // 신생 레포를 동일한 24시간 기준 증가량으로 비교한다. 기준선이 없는 레포는 JOIN에서 제외된다.
-export async function risingRepos(userId, windowDays, limit = 8, minStars = 500) {
-  const { sql, params } = buildRisingQuery(userId, { windowDays, minStars, limit });
+export async function risingRepos(userId, windowDays, limit = 8, minDelta = 500) {
+  const { sql, params } = buildRisingQuery(userId, { windowDays, minDelta, limit });
   const [rows] = await pool.query(sql, params);
   return rows.map((r) => ({
     ...r,

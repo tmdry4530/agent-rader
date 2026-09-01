@@ -338,7 +338,7 @@ function trends(query?: Record<string, unknown>): TrendRepo[] {
   const limit = query?.limit != null ? Number(query.limit) : 10;
   return repos
     .slice()
-    .filter((r) => r.star_delta > 0) // 정체 레포 숨김 (R3.1)
+    .filter((r) => r.stars >= 1000 && r.star_delta > 0)
     .sort((a, b) => b.growth_rate - a.growth_rate)
     .slice(0, limit)
     .map((r) => ({
@@ -357,21 +357,21 @@ const RISING_SAMPLE: { id: number; ageDays: number }[] = [
   { id: 4, ageDays: 28 }, // mudrii/hermes-agent-docs — 4주 전 생성
   { id: 9, ageDays: 42 }, // toolhouse-ai/agent-tools — 6주 전 생성
 ];
-const RISING_WINDOW_DAYS = 30; // 노출 창 (design.md §2 — 수집은 90일, 노출은 30일)
-const RISING_MIN_STARS = 500;
+const RISING_WINDOW_DAYS = 15;
+const RISING_MIN_DELTA = 500;
 function risingRepos(query?: Record<string, unknown>): RisingRepo[] {
   const limit = query?.limit != null ? Number(query.limit) : 8;
   return RISING_SAMPLE.filter(({ ageDays }) => ageDays <= RISING_WINDOW_DAYS)
     .map(({ id, ageDays }): RisingRepo | null => {
       const r = repos.find((repo) => repo.id === id);
-      if (!r || r.stars < RISING_MIN_STARS) return null;
+      if (!r) return null;
       const cutoff = Date.now() - 24 * 60 * 60 * 1000;
       const baseline = snapshots[id]
         ?.filter((snapshot) => new Date(snapshot.captured_at).getTime() <= cutoff)
         .at(-1);
       if (!baseline) return null;
       const starDelta24h = r.stars - baseline.stars;
-      if (starDelta24h <= 0) return null;
+      if (starDelta24h < RISING_MIN_DELTA) return null;
       return {
         id: r.id,
         full_name: r.full_name,

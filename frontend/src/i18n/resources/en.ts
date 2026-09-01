@@ -142,13 +142,13 @@ export const en = {
     },
     rising: {
       title: 'New and rising',
-      subtitle: '30 days · 500+ stars · 24-hour growth',
+      subtitle: '15 days · 500+ stars gained in 24 hours',
       empty: 'No new projects matched the fast-growth rules in the last 24 hours',
       detail: 'Last 24 hours {{delta}} · {{rate}} growth',
     },
     movers: {
       title: 'Growing quickly',
-      subtitle: 'Highest recent star growth',
+      subtitle: '1,000+ stars · highest recent growth rate',
     },
     saved: {
       title: 'Saved projects',

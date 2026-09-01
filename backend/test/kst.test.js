@@ -6,7 +6,7 @@ import {
   trendWindowDays,
   trendMinStars,
   risingWindowDays,
-  risingMinStars,
+  risingMinDelta,
 } from '../src/utils/limits.js';
 
 // KST 자정 = UTC 15:00. 경계 전후로 날짜가 정확히 넘어가야 한다.
@@ -103,36 +103,36 @@ test('trendMinStars — 기본 50, env 0 이상 정수면 반영(0 포함), 비�
   }
 });
 
-test('risingWindowDays — 기본 30, env 양의 정수면 반영, 비정상 값은 기본값', () => {
+test('risingWindowDays — 기본 15, env 양의 정수면 반영, 비정상 값은 기본값', () => {
   const orig = process.env.RISING_WINDOW_DAYS;
   try {
     delete process.env.RISING_WINDOW_DAYS;
-    assert.equal(risingWindowDays(), 30);
+    assert.equal(risingWindowDays(), 15);
     process.env.RISING_WINDOW_DAYS = '14';
     assert.equal(risingWindowDays(), 14);
     process.env.RISING_WINDOW_DAYS = '0';
-    assert.equal(risingWindowDays(), 30);
+    assert.equal(risingWindowDays(), 15);
     process.env.RISING_WINDOW_DAYS = 'abc';
-    assert.equal(risingWindowDays(), 30);
+    assert.equal(risingWindowDays(), 15);
   } finally {
     if (orig === undefined) delete process.env.RISING_WINDOW_DAYS;
     else process.env.RISING_WINDOW_DAYS = orig;
   }
 });
 
-test('risingMinStars — 기본 500, env 양의 정수면 반영, 비정상 값은 기본값', () => {
-  const orig = process.env.RISING_MIN_STARS;
+test('risingMinDelta — 기본 500, env 양의 정수면 반영, 비정상 값은 기본값', () => {
+  const orig = process.env.RISING_MIN_DELTA;
   try {
-    delete process.env.RISING_MIN_STARS;
-    assert.equal(risingMinStars(), 500);
-    process.env.RISING_MIN_STARS = '800';
-    assert.equal(risingMinStars(), 800);
-    process.env.RISING_MIN_STARS = '0';
-    assert.equal(risingMinStars(), 500);
-    process.env.RISING_MIN_STARS = 'abc';
-    assert.equal(risingMinStars(), 500);
+    delete process.env.RISING_MIN_DELTA;
+    assert.equal(risingMinDelta(), 500);
+    process.env.RISING_MIN_DELTA = '800';
+    assert.equal(risingMinDelta(), 800);
+    process.env.RISING_MIN_DELTA = '0';
+    assert.equal(risingMinDelta(), 500);
+    process.env.RISING_MIN_DELTA = 'abc';
+    assert.equal(risingMinDelta(), 500);
   } finally {
-    if (orig === undefined) delete process.env.RISING_MIN_STARS;
-    else process.env.RISING_MIN_STARS = orig;
+    if (orig === undefined) delete process.env.RISING_MIN_DELTA;
+    else process.env.RISING_MIN_DELTA = orig;
   }
 });
